@@ -1,3 +1,47 @@
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-button');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Prepayment functionality
+    const addPrepaymentBtn = document.getElementById('addPrepayment');
+    const prepaymentList = document.getElementById('prepaymentList');
+
+    addPrepaymentBtn.addEventListener('click', () => {
+        const newRow = document.createElement('div');
+        newRow.className = 'prepayment-row';
+        newRow.innerHTML = `
+            <div class="input-group">
+                <label>Month</label>
+                <input type="number" class="prepay-month" min="1" step="1">
+            </div>
+            <div class="input-group">
+                <label>Amount (₹)</label>
+                <input type="number" class="prepay-amount" min="0" step="1000">
+            </div>
+            <button class="remove-prepayment">×</button>
+        `;
+        prepaymentList.appendChild(newRow);
+
+        newRow.querySelector('.remove-prepayment').addEventListener('click', () => {
+            newRow.remove();
+        });
+    });
+});
+
+let paymentBreakdownChart = null;
+let outstandingBalanceChart = null;
+
 // Function to format currency
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
@@ -102,4 +146,216 @@ function calculateSWP() {
     }
     
     resultDiv.classList.add('visible');
+}
+
+// Calculate EMI
+function calculateEMI() {
+    const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+    const annualRate = parseFloat(document.getElementById('interestRate').value);
+    const loanTermMonths = parseInt(document.getElementById('loanTerm').value);
+
+    if (!loanAmount || !annualRate || !loanTermMonths) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const monthlyRate = annualRate / (12 * 100);
+    const monthlyEMI = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTermMonths) / 
+                      (Math.pow(1 + monthlyRate, loanTermMonths) - 1);
+
+    // Get prepayment details
+    const prepayments = [];
+    document.querySelectorAll('.prepayment-row').forEach(row => {
+        const month = parseInt(row.querySelector('.prepay-month').value);
+        const amount = parseFloat(row.querySelector('.prepay-amount').value);
+        if (month && amount) {
+            prepayments.push({ month, amount });
+        }
+    });
+    prepayments.sort((a, b) => a.month - b.month);
+
+    // Calculate amortization schedule
+    let balance = loanAmount;
+    let totalInterest = 0;
+    let regularTotalInterest = 0;
+    const schedule = [];
+    const balanceData = [balance];
+    const principalData = [];
+    const interestData = [];
+    const prepaymentData = [];
+
+    // Calculate regular EMI total interest first
+    let tempBalance = loanAmount;
+    for (let month = 1; month <= loanTermMonths; month++) {
+        const interestPayment = tempBalance * monthlyRate;
+        const principalPayment = monthlyEMI - interestPayment;
+        regularTotalInterest += interestPayment;
+        tempBalance -= principalPayment;
+    }
+
+    // Now calculate with prepayments
+    for (let month = 1; month <= loanTermMonths && balance > 0; month++) {
+        const interestPayment = balance * monthlyRate;
+        let principalPayment = Math.min(monthlyEMI - interestPayment, balance);
+        let extraPayment = 0;
+
+        const prepayment = prepayments.find(p => p.month === month);
+        if (prepayment) {
+            extraPayment = Math.min(prepayment.amount, balance - principalPayment);
+            balance -= extraPayment;
+        }
+
+        totalInterest += interestPayment;
+        balance -= principalPayment;
+
+        if (balance < 0) balance = 0;
+
+        schedule.push({
+            month,
+            emi: monthlyEMI,
+            principal: principalPayment,
+            interest: interestPayment,
+            extraPayment,
+            balance
+        });
+
+        balanceData.push(balance);
+        principalData.push(principalPayment);
+        interestData.push(interestPayment);
+        prepaymentData.push(extraPayment);
+    }
+
+    // Update summary
+    document.getElementById('monthlyEMI').textContent = formatCurrency(monthlyEMI);
+    document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+    document.getElementById('totalPayment').textContent = formatCurrency(loanAmount + totalInterest);
+    document.getElementById('interestSaved').textContent = formatCurrency(regularTotalInterest - totalInterest);
+
+    // Update amortization table
+    const tableBody = document.getElementById('amortizationTable').querySelector('tbody');
+    tableBody.innerHTML = '';
+    schedule.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.month}</td>
+            <td>${formatCurrency(row.emi)}</td>
+            <td>${formatCurrency(row.principal)}</td>
+            <td>${formatCurrency(row.interest)}</td>
+            <td>${formatCurrency(row.extraPayment)}</td>
+            <td>${formatCurrency(row.balance)}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+
+    // Update charts
+    updatePaymentBreakdownChart(principalData, interestData, prepaymentData);
+    updateOutstandingBalanceChart(balanceData);
+
+    document.getElementById('emiResult').classList.add('visible');
+}
+
+// Update Payment Breakdown Chart
+function updatePaymentBreakdownChart(principalData, interestData, prepaymentData) {
+    const ctx = document.getElementById('paymentBreakdown').getContext('2d');
+    
+    if (paymentBreakdownChart) {
+        paymentBreakdownChart.destroy();
+    }
+
+    paymentBreakdownChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: principalData.length}, (_, i) => i + 1),
+            datasets: [
+                {
+                    label: 'Principal',
+                    data: principalData,
+                    backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                },
+                {
+                    label: 'Interest',
+                    data: interestData,
+                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                },
+                {
+                    label: 'Prepayment',
+                    data: prepaymentData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Amount (₹)'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Payment Breakdown'
+                }
+            }
+        }
+    });
+}
+
+// Update Outstanding Balance Chart
+function updateOutstandingBalanceChart(balanceData) {
+    const ctx = document.getElementById('outstandingBalance').getContext('2d');
+    
+    if (outstandingBalanceChart) {
+        outstandingBalanceChart.destroy();
+    }
+
+    outstandingBalanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: balanceData.length}, (_, i) => i),
+            datasets: [{
+                label: 'Outstanding Balance',
+                data: balanceData,
+                borderColor: 'rgba(52, 152, 219, 1)',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Balance (₹)'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Outstanding Balance'
+                }
+            }
+        }
+    });
 }

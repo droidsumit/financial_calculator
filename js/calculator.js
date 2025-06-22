@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="action-col">
                 <button class="remove-prepayment" title="${isLastRow ? 'Add' : 'Remove'}" data-action="${isLastRow ? 'add' : 'remove'}">
-                    ${isLastRow ? '+ Add' : '×'}
+                    ${isLastRow ? '+' : '×'}
                 </button>
             </div>
         `;
@@ -214,7 +214,8 @@ function calculateEMI() {
     const balanceData = [balance];
     const principalData = [];
     const interestData = [];
-    const prepaymentData = [];
+    const monthlyExtraData = [];
+    const lumpsumData = [];
 
     // Calculate regular EMI total interest first
     let tempBalance = loanAmount;
@@ -229,15 +230,15 @@ function calculateEMI() {
     for (let month = 1; month <= loanTermMonths && balance > 0; month++) {
         const interestPayment = balance * monthlyRate;
         let principalPayment = Math.min(monthlyEMI - interestPayment, balance);
-        let extraPayment = monthlyExtra;
+        let monthlyExtraPayment = Math.min(monthlyExtra, balance - principalPayment);
+        let lumpsumPayment = 0;
 
         const prepayment = prepayments.find(p => p.month === month);
         if (prepayment) {
-            extraPayment += prepayment.amount;
+            lumpsumPayment = Math.min(prepayment.amount, balance - principalPayment - monthlyExtraPayment);
         }
 
-        extraPayment = Math.min(extraPayment, balance - principalPayment);
-        balance -= extraPayment;
+        balance -= (monthlyExtraPayment + lumpsumPayment);
 
         totalInterest += interestPayment;
         balance -= principalPayment;
@@ -249,14 +250,16 @@ function calculateEMI() {
             emi: monthlyEMI,
             principal: principalPayment,
             interest: interestPayment,
-            extraPayment,
+            monthlyExtra: monthlyExtraPayment,
+            lumpsum: lumpsumPayment,
             balance
         });
 
         balanceData.push(balance);
         principalData.push(principalPayment);
         interestData.push(interestPayment);
-        prepaymentData.push(extraPayment);
+        monthlyExtraData.push(monthlyExtraPayment);
+        lumpsumData.push(lumpsumPayment);
     }
 
     // Update summary
@@ -297,21 +300,21 @@ function calculateEMI() {
             <td>${formatCurrency(row.emi)}</td>
             <td>${formatCurrency(row.principal)}</td>
             <td>${formatCurrency(row.interest)}</td>
-            <td>${formatCurrency(row.extraPayment)}</td>
+            <td>${formatCurrency(row.monthlyExtra + row.lumpsum)}</td>
             <td>${formatCurrency(row.balance)}</td>
         `;
         tableBody.appendChild(tr);
     });
 
     // Update charts
-    updatePaymentBreakdownChart(principalData, interestData, prepaymentData);
+    updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData);
     updateOutstandingBalanceChart(balanceData);
 
     document.getElementById('emiResult').classList.add('visible');
 }
 
 // Update Payment Breakdown Chart
-function updatePaymentBreakdownChart(principalData, interestData, prepaymentData) {
+function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData) {
     const ctx = document.getElementById('paymentBreakdown').getContext('2d');
     
     if (paymentBreakdownChart) {
@@ -334,9 +337,14 @@ function updatePaymentBreakdownChart(principalData, interestData, prepaymentData
                     backgroundColor: 'rgba(231, 76, 60, 0.8)',
                 },
                 {
-                    label: 'Prepayment',
-                    data: prepaymentData,
-                    backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                    label: 'Monthly Extra',
+                    data: monthlyExtraData,
+                    backgroundColor: 'rgba(156, 39, 176, 0.8)', // Purple for monthly extra
+                },
+                {
+                    label: 'Lumpsum',
+                    data: lumpsumData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.8)', // Green for lumpsum
                 }
             ]
         },

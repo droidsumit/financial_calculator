@@ -79,37 +79,74 @@ h2 {
     border-radius: 8px;
 }
 
-.prepayment-row {
-    display: flex;
+.prepayment-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 60px;
     gap: 1rem;
-    align-items: flex-end;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0 0.5rem;
+}
+
+.prepayment-col {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.prepayment-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 60px;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.prepayment-row .input-group {
+    margin-bottom: 0;
+}
+
+.prepayment-row input {
+    width: 100%;
+}
+
+.action-col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .remove-prepayment {
-    background: #dc3545;
-    color: white;
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
 
-.add-prepayment {
+.remove-prepayment[data-action="remove"] {
+    background: #dc3545;
+    color: white;
+}
+
+.remove-prepayment[data-action="remove"]:hover {
+    background: #c82333;
+}
+
+.remove-prepayment[data-action="add"] {
     background: #28a745;
     color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-top: 1rem;
+    width: auto;
+    padding: 0 1rem;
+}
+
+.remove-prepayment[data-action="add"]:hover {
+    background: #218838;
 }
 
 .summary-section {
@@ -138,8 +175,27 @@ h2 {
     display: block;
     font-size: 1.2rem;
     font-weight: 600;
-    color: #2c3e50;
     margin-top: 0.5rem;
+}
+
+#monthlyEMI {
+    color: #6052FF;
+}
+
+#monthlyExtra {
+    color: #9C27B0;
+}
+
+#totalInterest, #totalInterestWithout {
+    color: #F44336;
+}
+
+#interestSaved, #timeSaved {
+    color: #4CAF50;
+}
+
+#originalTerm, #newTerm {
+    color: #6052FF;
 }
 
 .charts-section {

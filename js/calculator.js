@@ -14,29 +14,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Prepayment functionality
-    const addPrepaymentBtn = document.getElementById('addPrepayment');
     const prepaymentList = document.getElementById('prepaymentList');
-
-    addPrepaymentBtn.addEventListener('click', () => {
-        const newRow = document.createElement('div');
-        newRow.className = 'prepayment-row';
-        newRow.innerHTML = `
+    
+    function createNewRow(isLastRow = false) {
+        const row = document.createElement('div');
+        row.className = 'prepayment-row';
+        row.innerHTML = `
             <div class="input-group">
-                <label>Month</label>
-                <input type="number" class="prepay-month" min="1" step="1">
+                <input type="number" class="prepay-month" min="1" step="1" placeholder="Month">
             </div>
             <div class="input-group">
-                <label>Amount (₹)</label>
-                <input type="number" class="prepay-amount" min="0" step="1000">
+                <input type="number" class="prepay-amount" min="0" step="1000" placeholder="Amount">
             </div>
-            <button class="remove-prepayment">×</button>
+            <div class="action-col">
+                <button class="remove-prepayment" title="${isLastRow ? 'Add' : 'Remove'}" data-action="${isLastRow ? 'add' : 'remove'}">
+                    ${isLastRow ? '+ Add' : '×'}
+                </button>
+            </div>
         `;
-        prepaymentList.appendChild(newRow);
+        
+        const button = row.querySelector('.remove-prepayment');
+        const monthInput = row.querySelector('.prepay-month');
+        const amountInput = row.querySelector('.prepay-amount');
 
-        newRow.querySelector('.remove-prepayment').addEventListener('click', () => {
-            newRow.remove();
+        button.addEventListener('click', () => {
+            if (button.dataset.action === 'add') {
+                // Only add new row if current row has values
+                if (monthInput.value && amountInput.value) {
+                    // Convert current row to normal row
+                    button.textContent = '×';
+                    button.title = 'Remove';
+                    button.dataset.action = 'remove';
+                    
+                    // Add new row
+                    prepaymentList.appendChild(createNewRow(true));
+                }
+            } else {
+                // If this is not the last row, remove it
+                const rows = prepaymentList.querySelectorAll('.prepayment-row');
+                if (rows.length > 1 && row !== rows[rows.length - 1]) {
+                    row.remove();
+                } else {
+                    // Clear inputs if it's the last row
+                    monthInput.value = '';
+                    amountInput.value = '';
+                }
+            }
         });
-    });
+
+        return row;
+    }
+
+    // Initialize with one row
+    prepaymentList.innerHTML = ''; // Clear any existing rows
+    prepaymentList.appendChild(createNewRow(true));
 });
 
 let paymentBreakdownChart = null;
@@ -153,6 +184,7 @@ function calculateEMI() {
     const loanAmount = parseFloat(document.getElementById('loanAmount').value);
     const annualRate = parseFloat(document.getElementById('interestRate').value);
     const loanTermMonths = parseInt(document.getElementById('loanTerm').value);
+    const monthlyExtra = parseFloat(document.getElementById('monthlyExtra').value) || 0;
 
     if (!loanAmount || !annualRate || !loanTermMonths) {
         alert('Please fill in all required fields');
@@ -197,13 +229,15 @@ function calculateEMI() {
     for (let month = 1; month <= loanTermMonths && balance > 0; month++) {
         const interestPayment = balance * monthlyRate;
         let principalPayment = Math.min(monthlyEMI - interestPayment, balance);
-        let extraPayment = 0;
+        let extraPayment = monthlyExtra;
 
         const prepayment = prepayments.find(p => p.month === month);
         if (prepayment) {
-            extraPayment = Math.min(prepayment.amount, balance - principalPayment);
-            balance -= extraPayment;
+            extraPayment += prepayment.amount;
         }
+
+        extraPayment = Math.min(extraPayment, balance - principalPayment);
+        balance -= extraPayment;
 
         totalInterest += interestPayment;
         balance -= principalPayment;
@@ -227,9 +261,31 @@ function calculateEMI() {
 
     // Update summary
     document.getElementById('monthlyEMI').textContent = formatCurrency(monthlyEMI);
+    document.getElementById('totalInterestWithout').textContent = formatCurrency(regularTotalInterest);
     document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
     document.getElementById('totalPayment').textContent = formatCurrency(loanAmount + totalInterest);
     document.getElementById('interestSaved').textContent = formatCurrency(regularTotalInterest - totalInterest);
+    
+    // Calculate and display loan periods
+    document.getElementById('originalTerm').textContent = loanTermMonths + ' months';
+    const actualTermMonths = schedule.length;
+    document.getElementById('newTerm').textContent = actualTermMonths + ' months';
+    
+    const monthsSaved = loanTermMonths - actualTermMonths;
+    const yearsSaved = Math.floor(monthsSaved / 12);
+    const remainingMonths = monthsSaved % 12;
+    
+    let timeSavedText = '';
+    if (yearsSaved > 0) {
+        timeSavedText += yearsSaved + ' year' + (yearsSaved > 1 ? 's' : '');
+        if (remainingMonths > 0) {
+            timeSavedText += ' and ';
+        }
+    }
+    if (remainingMonths > 0 || yearsSaved === 0) {
+        timeSavedText += remainingMonths + ' month' + (remainingMonths > 1 ? 's' : '');
+    }
+    document.getElementById('timeSaved').textContent = timeSavedText;
 
     // Update amortization table
     const tableBody = document.getElementById('amortizationTable').querySelector('tbody');

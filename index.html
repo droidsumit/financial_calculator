@@ -33,24 +33,32 @@
                     <label for="loanTerm">Loan Period (months)</label>
                     <input type="number" id="loanTerm" min="1" step="1" placeholder="e.g., 12">
                 </div>
+                <div class="input-group">
+                    <label for="monthlyExtra">Monthly Extra Payment (₹)</label>
+                    <input type="number" id="monthlyExtra" min="0" step="100" placeholder="e.g., 1000">
+                </div>
             </div>
 
             <div class="prepayment-section">
                 <h3>Lumpsum Prepayments</h3>
+                <div class="prepayment-header">
+                    <div class="prepayment-col">Month</div>
+                    <div class="prepayment-col">Amount</div>
+                    <div class="prepayment-col action"></div>
+                </div>
                 <div class="prepayment-list" id="prepaymentList">
                     <div class="prepayment-row">
                         <div class="input-group">
-                            <label>Month</label>
-                            <input type="number" class="prepay-month" min="1" step="1">
+                            <input type="number" class="prepay-month" min="1" step="1" placeholder="Month">
                         </div>
                         <div class="input-group">
-                            <label>Amount (₹)</label>
-                            <input type="number" class="prepay-amount" min="0" step="1000">
+                            <input type="number" class="prepay-amount" min="0" step="1000" placeholder="Amount">
                         </div>
-                        <button class="remove-prepayment">×</button>
+                        <div class="action-col">
+                            <button class="remove-prepayment" title="Remove" data-action="add">+ Add</button>
+                        </div>
                     </div>
                 </div>
-                <button id="addPrepayment" class="add-prepayment">+ Add Prepayment</button>
             </div>
 
             <button onclick="calculateEMI()">Calculate EMI</button>
@@ -64,7 +72,11 @@
                             <span id="monthlyEMI"></span>
                         </div>
                         <div class="summary-item">
-                            <label>Total Interest</label>
+                            <label>Total Interest (Without Prepayment)</label>
+                            <span id="totalInterestWithout"></span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Total Interest (With Prepayment)</label>
                             <span id="totalInterest"></span>
                         </div>
                         <div class="summary-item">
@@ -74,6 +86,18 @@
                         <div class="summary-item">
                             <label>Interest Saved</label>
                             <span id="interestSaved"></span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Original Loan Period</label>
+                            <span id="originalTerm"></span>
+                        </div>
+                        <div class="summary-item">
+                            <label>New Loan Period</label>
+                            <span id="newTerm"></span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Time Saved</label>
+                            <span id="timeSaved"></span>
                         </div>
                     </div>
                 </div>

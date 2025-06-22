@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Calculator</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Financial Calculator</h1>
+        
+        <div class="calculator-section">
+            <h2>SIP Calculator</h2>
+            <div class="input-group">
+                <label for="sipAmount">Monthly SIP Amount (₹)</label>
+                <input type="number" id="sipAmount" min="0" step="100" placeholder="e.g., 5000">
+            </div>
+            <div class="input-group">
+                <label for="sipYears">Investment Period (Years)</label>
+                <input type="number" id="sipYears" min="1" step="1" placeholder="e.g., 10">
+            </div>
+            <div class="input-group">
+                <label for="sipReturn">Expected Return Rate (%)</label>
+                <input type="number" id="sipReturn" min="1" step="0.1" placeholder="e.g., 12">
+            </div>
+            <div class="input-group">
+                <label for="stepUp">Annual Step-up (%)</label>
+                <input type="number" id="stepUp" min="0" step="0.1" placeholder="e.g., 5">
+            </div>
+            <div class="input-group">
+                <label for="sipInflation">Expected Inflation Rate (%)</label>
+                <input type="number" id="sipInflation" min="0" step="0.1" placeholder="e.g., 6">
+            </div>
+            <button onclick="calculateSIP()">Calculate SIP</button>
+            <div id="sipResult" class="result"></div>
+        </div>
+
+        <div class="calculator-section">
+            <h2>SWP Calculator</h2>
+            <div class="input-group">
+                <label for="initialAmount">Initial Investment (₹)</label>
+                <input type="number" id="initialAmount" min="0" step="1000" placeholder="e.g., 1000000">
+            </div>
+            <div class="input-group">
+                <label for="swpAmount">Monthly Withdrawal (₹)</label>
+                <input type="number" id="swpAmount" min="0" step="100" placeholder="e.g., 10000">
+            </div>
+            <div class="input-group">
+                <label for="swpYears">Withdrawal Period (Years)</label>
+                <input type="number" id="swpYears" min="1" step="1" placeholder="e.g., 20">
+            </div>
+            <div class="input-group">
+                <label for="swpReturn">Expected Return Rate (%)</label>
+                <input type="number" id="swpReturn" min="1" step="0.1" placeholder="e.g., 8">
+            </div>
+            <div class="input-group">
+                <label for="swpInflation">Expected Inflation Rate (%)</label>
+                <input type="number" id="swpInflation" min="0" step="0.1" placeholder="e.g., 6">
+            </div>
+            <button onclick="calculateSWP()">Calculate SWP</button>
+            <div id="swpResult" class="result"></div>
+        </div>
+    </div>
+    <script src="js/calculator.js"></script>
+</body>
+</html>

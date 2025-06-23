@@ -321,30 +321,41 @@ function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraDa
         paymentBreakdownChart.destroy();
     }
 
+    // Calculate proportions for each month
+    const totalsByMonth = principalData.map((principal, index) => 
+        principal + interestData[index] + monthlyExtraData[index] + lumpsumData[index]
+    );
+
+    // Convert raw values to proportions
+    const principalProportions = principalData.map((value, index) => value / totalsByMonth[index] || 0);
+    const interestProportions = interestData.map((value, index) => value / totalsByMonth[index] || 0);
+    const monthlyExtraProportions = monthlyExtraData.map((value, index) => value / totalsByMonth[index] || 0);
+    const lumpsumProportions = lumpsumData.map((value, index) => value / totalsByMonth[index] || 0);
+
     paymentBreakdownChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: Array.from({length: principalData.length}, (_, i) => i + 1),
             datasets: [
                 {
-                    label: 'Principal',
-                    data: principalData,
-                    backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                    label: 'Interest',
+                    data: interestProportions,
+                    backgroundColor: 'rgb(255, 99, 132)',
                 },
                 {
-                    label: 'Interest',
-                    data: interestData,
-                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                    label: 'Principal',
+                    data: principalProportions,
+                    backgroundColor: 'rgb(53, 162, 235)',
                 },
                 {
                     label: 'Monthly Extra',
-                    data: monthlyExtraData,
-                    backgroundColor: 'rgba(156, 39, 176, 0.8)', // Purple for monthly extra
+                    data: monthlyExtraProportions,
+                    backgroundColor: 'rgb(75, 192, 192)',
                 },
                 {
                     label: 'Lumpsum',
-                    data: lumpsumData,
-                    backgroundColor: 'rgba(46, 204, 113, 0.8)', // Green for lumpsum
+                    data: lumpsumProportions,
+                    backgroundColor: 'rgb(255, 159, 64)',
                 }
             ]
         },
@@ -356,21 +367,72 @@ function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraDa
                     stacked: true,
                     title: {
                         display: true,
-                        text: 'Month'
+                        text: 'Month',
+                        padding: {
+                            top: 10
+                        }
+                    },
+                    grid: {
+                        display: false
                     }
                 },
                 y: {
                     stacked: true,
+                    beginAtZero: true,
+                    min: 0,
+                    max: 1,
                     title: {
                         display: true,
-                        text: 'Amount (₹)'
+                        text: 'Proportion',
+                        padding: {
+                            bottom: 10
+                        }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return (value * 100).toFixed(0) + '%';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
                     }
                 }
             },
             plugins: {
                 title: {
                     display: true,
-                    text: 'Payment Breakdown'
+                    text: 'Payment Breakdown',
+                    padding: 20,
+                    font: {
+                        size: 16,
+                        weight: 'normal'
+                    }
+                },
+                legend: {
+                    position: 'bottom',
+                    align: 'center',
+                    labels: {
+                        boxWidth: 12,
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const dataIndex = context.dataIndex;
+                            const rawValue = context.dataset.label === 'Principal' ? principalData[dataIndex] :
+                                           context.dataset.label === 'Interest' ? interestData[dataIndex] :
+                                           context.dataset.label === 'Monthly Extra' ? monthlyExtraData[dataIndex] :
+                                           lumpsumData[dataIndex];
+                            
+                            return `${context.dataset.label}: ${new Intl.NumberFormat('en-IN', {
+                                style: 'currency',
+                                currency: 'INR',
+                                maximumFractionDigits: 0
+                            }).format(rawValue)} (${(context.parsed.y * 100).toFixed(1)}%)`;
+                        }
+                    }
                 }
             }
         }
@@ -392,9 +454,13 @@ function updateOutstandingBalanceChart(balanceData) {
             datasets: [{
                 label: 'Outstanding Balance',
                 data: balanceData,
-                borderColor: 'rgba(52, 152, 219, 1)',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                fill: true
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.1)',
+                fill: true,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgb(53, 162, 235)',
+                pointBorderColor: 'rgb(53, 162, 235)',
+                tension: 0.2
             }]
         },
         options: {
@@ -404,20 +470,68 @@ function updateOutstandingBalanceChart(balanceData) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Month'
+                        text: 'Month',
+                        padding: {
+                            top: 10
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        drawTicks: false
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 12
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Balance (₹)'
+                        text: 'Balance (₹)',
+                        padding: {
+                            bottom: 10
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        drawTicks: false
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString('en-IN');
+                        }
                     }
                 }
             },
             plugins: {
                 title: {
                     display: true,
-                    text: 'Outstanding Balance'
+                    text: 'Outstanding Balance',
+                    padding: 20,
+                    font: {
+                        size: 16,
+                        weight: 'normal'
+                    }
+                },
+                legend: {
+                    position: 'bottom',
+                    align: 'center',
+                    labels: {
+                        boxWidth: 12,
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Balance: ' + new Intl.NumberFormat('en-IN', {
+                                style: 'currency',
+                                currency: 'INR',
+                                maximumFractionDigits: 0
+                            }).format(context.parsed.y);
+                        }
+                    }
                 }
             }
         }

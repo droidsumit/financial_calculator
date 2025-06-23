@@ -275,32 +275,23 @@ function calculateEMI() {
     document.getElementById('newTerm').textContent = actualTermMonths + ' months';
     
     const monthsSaved = loanTermMonths - actualTermMonths;
-    const yearsSaved = Math.floor(monthsSaved / 12);
-    const remainingMonths = monthsSaved % 12;
-    
-    let timeSavedText = '';
-    if (yearsSaved > 0) {
-        timeSavedText += yearsSaved + ' year' + (yearsSaved > 1 ? 's' : '');
-        if (remainingMonths > 0) {
-            timeSavedText += ' and ';
-        }
-    }
-    if (remainingMonths > 0 || yearsSaved === 0) {
-        timeSavedText += remainingMonths + ' month' + (remainingMonths > 1 ? 's' : '');
-    }
-    document.getElementById('timeSaved').textContent = timeSavedText;
+    document.getElementById('timeSaved').textContent = monthsSaved + ' months';
 
     // Update amortization table
     const tableBody = document.getElementById('amortizationTable').querySelector('tbody');
     tableBody.innerHTML = '';
     schedule.forEach(row => {
         const tr = document.createElement('tr');
+        const monthlyExtraValue = row.monthlyExtra || 0;
+        const lumpsumValue = row.lumpsum || 0;
+        
         tr.innerHTML = `
             <td>${row.month}</td>
             <td>${formatCurrency(row.emi)}</td>
             <td>${formatCurrency(row.principal)}</td>
             <td>${formatCurrency(row.interest)}</td>
-            <td>${formatCurrency(row.monthlyExtra + row.lumpsum)}</td>
+            <td class="monthly-extra">${monthlyExtraValue > 0 ? formatCurrency(monthlyExtraValue) : formatCurrency(0)}</td>
+            <td class="lumpsum">${lumpsumValue > 0 ? formatCurrency(lumpsumValue) : formatCurrency(0)}</td>
             <td>${formatCurrency(row.balance)}</td>
         `;
         tableBody.appendChild(tr);

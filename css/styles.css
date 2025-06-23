@@ -215,27 +215,41 @@ h2 {
 
 .table-container {
     overflow-x: auto;
+    background-color: #f0fff4;
+    border-radius: 8px;
+    padding: 1rem;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
+    margin-top: 0;
 }
 
 th, td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid #c8e6c9;
 }
 
 th {
-    background: #f8f9fa;
+    background: #e8f5e9;
     font-weight: 600;
+    color: #2c3e50;
 }
 
 tr:hover {
-    background: #f8f9fa;
+    background: #f8fff8;
+}
+
+td.monthly-extra {
+    color: rgb(75, 192, 192);
+    font-weight: 500;
+}
+
+td.lumpsum {
+    color: rgb(255, 159, 64);
+    font-weight: 500;
 }
 
 .input-group {

@@ -178,23 +178,26 @@ h2 {
     margin-top: 0.5rem;
 }
 
-#monthlyEMI {
+#monthlyEMI, #monthlyEMI2 {
     color: #6052FF;
 }
 
-#monthlyExtra {
+#monthlyExtra, #monthlyExtra2 {
     color: #9C27B0;
 }
 
-#totalInterest, #totalInterestWithout {
+#totalInterest, #totalInterest2,
+#totalInterestWithout, #totalInterestWithout2 {
     color: #F44336;
 }
 
-#interestSaved, #timeSaved {
+#interestSaved, #interestSaved2,
+#timeSaved, #timeSaved2 {
     color: #4CAF50;
 }
 
-#originalTerm, #newTerm {
+#originalTerm, #originalTerm2,
+#newTerm, #newTerm2 {
     color: #6052FF;
 }
 
@@ -305,8 +308,211 @@ button:hover {
     display: block;
 }
 
+.comparison-controls {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #e8f5e9;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.comparison-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.comparison-toggle input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.loan-comparison {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.loan-form {
+    flex: 1;
+    min-width: 400px;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+#loan2 {
+    display: none;
+}
+
+#loan2.visible {
+    display: block;
+}
+
+.comparison-results .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.comparison-results .charts-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.comparison-results .chart {
+    height: 300px;
+}
+
+.comparison-results .chart canvas {
+    max-width: 100%;
+}
+
+.comparison-results .amortization-table {
+    overflow-x: auto;
+    margin-top: 2rem;
+}
+
+.loan-form h3 {
+    color: #2c3e50;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+}
+
+.calculate-button {
+    margin-top: 1rem;
+}
+
+.loan-summary h4,
+.loan-charts h4,
+.loan-table h4 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+#loan2,
+#summary2,
+#charts2,
+#table2 {
+    display: none;
+}
+
+.comparison-enabled #loan2,
+.comparison-enabled #summary2,
+.comparison-enabled #charts2,
+.comparison-enabled #table2 {
+    display: block !important;
+}
+
+.comparison-enabled .loan-summary {
+    flex: 1;
+    min-width: 300px;
+}
+
+.comparison-enabled .loan-charts {
+    flex: 1;
+    min-width: 300px;
+}
+
+.comparison-enabled .loan-table {
+    margin-top: 2rem;
+}
+
+.comparison-enabled .result {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.comparison-enabled .summary-section,
+.comparison-enabled .charts-section,
+.comparison-enabled .amortization-tables {
+    grid-column: 1 / -1;
+}
+
+.comparison-enabled .summary-grid,
+.comparison-enabled .loan-charts,
+.comparison-enabled .loan-table {
+    flex: 1;
+    min-width: 0;
+}
+
+.comparison-enabled .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.comparison-enabled .charts-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.comparison-enabled .amortization-tables {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+/* Ensure tables don't overflow */
+.comparison-enabled .table-container {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Add some spacing between sections */
+.comparison-enabled .summary-section,
+.comparison-enabled .charts-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e8f5e9;
+}
+
+/* Make chart containers equal height */
+.comparison-enabled .chart {
+    height: 350px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .comparison-enabled .summary-grid,
+    .comparison-enabled .charts-section,
+    .comparison-enabled .amortization-tables {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-enabled .loan-charts,
+    .comparison-enabled .loan-table {
+        margin-bottom: 2rem;
+    }
+}
+
+.comparison-enabled .chart {
+    margin-bottom: 2rem;
+}
+
 @media (min-width: 768px) {
     .calculator-section {
         padding: 3rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .comparison-results .summary-grid,
+    .comparison-results .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-results .chart {
+        width: 100%;
     }
 }

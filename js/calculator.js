@@ -1,3 +1,15 @@
+// Chart instances for both loans
+const charts = {
+    loan1: {
+        paymentBreakdown: null,
+        outstandingBalance: null
+    },
+    loan2: {
+        paymentBreakdown: null,
+        outstandingBalance: null
+    }
+};
+
 // Tab switching functionality
 document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.tab-button');
@@ -13,181 +25,85 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Prepayment functionality
-    const prepaymentList = document.getElementById('prepaymentList');
-    
-    function createNewRow(isLastRow = false) {
-        const row = document.createElement('div');
-        row.className = 'prepayment-row';
-        row.innerHTML = `
-            <div class="input-group">
-                <input type="number" class="prepay-month" min="1" step="1" placeholder="Month">
-            </div>
-            <div class="input-group">
-                <input type="number" class="prepay-amount" min="0" step="1000" placeholder="Amount">
-            </div>
-            <div class="action-col">
-                <button class="remove-prepayment" title="${isLastRow ? 'Add' : 'Remove'}" data-action="${isLastRow ? 'add' : 'remove'}">
-                    ${isLastRow ? '+' : '×'}
-                </button>
-            </div>
-        `;
-        
-        const button = row.querySelector('.remove-prepayment');
-        const monthInput = row.querySelector('.prepay-month');
-        const amountInput = row.querySelector('.prepay-amount');
-
-        button.addEventListener('click', () => {
-            if (button.dataset.action === 'add') {
-                // Only add new row if current row has values
-                if (monthInput.value && amountInput.value) {
-                    // Convert current row to normal row
-                    button.textContent = '×';
-                    button.title = 'Remove';
-                    button.dataset.action = 'remove';
-                    
-                    // Add new row
-                    prepaymentList.appendChild(createNewRow(true));
-                }
-            } else {
-                // If this is not the last row, remove it
-                const rows = prepaymentList.querySelectorAll('.prepayment-row');
-                if (rows.length > 1 && row !== rows[rows.length - 1]) {
-                    row.remove();
-                } else {
-                    // Clear inputs if it's the last row
-                    monthInput.value = '';
-                    amountInput.value = '';
-                }
-            }
-        });
-
-        return row;
-    }
-
-    // Initialize with one row
-    prepaymentList.innerHTML = ''; // Clear any existing rows
-    prepaymentList.appendChild(createNewRow(true));
+    // Initialize prepayment lists for both loans
+    ['prepaymentList', 'prepaymentList2'].forEach(listId => {
+        const prepaymentList = document.getElementById(listId);
+        if (prepaymentList) {
+            prepaymentList.innerHTML = '';
+            prepaymentList.appendChild(createNewRow(true, listId));
+        }
+    });
 });
 
-let paymentBreakdownChart = null;
-let outstandingBalanceChart = null;
-
-// Function to format currency
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0
-    }).format(amount);
-}
-
-// Calculate SIP returns with step-up
-function calculateSIP() {
-    const monthlyInvestment = parseFloat(document.getElementById('sipAmount').value);
-    const years = parseInt(document.getElementById('sipYears').value);
-    const returnRate = parseFloat(document.getElementById('sipReturn').value);
-    const stepUpRate = parseFloat(document.getElementById('stepUp').value) || 0;
-    const inflationRate = parseFloat(document.getElementById('sipInflation').value) || 0;
-    
-    if (!monthlyInvestment || !years || !returnRate) {
-        alert('Please fill in all required fields');
-        return;
-    }
-
-    // Calculate real return rate adjusted for inflation
-    const realReturnRate = ((1 + returnRate/100) / (1 + inflationRate/100) - 1) * 100;
-    const monthlyRate = realReturnRate / (12 * 100);
-    const totalMonths = years * 12;
-    let totalInvestment = 0;
-    let futureValue = 0;
-    let currentMonthlyInvestment = monthlyInvestment;
-
-    for (let year = 0; year < years; year++) {
-        for (let month = 0; month < 12; month++) {
-            totalInvestment += currentMonthlyInvestment;
-            futureValue = (futureValue + currentMonthlyInvestment) * (1 + monthlyRate);
-        }
-        // Apply step-up at the end of each year
-        currentMonthlyInvestment *= (1 + stepUpRate / 100);
-    }
-
-    const wealthGained = futureValue - totalInvestment;
-    
-    const resultDiv = document.getElementById('sipResult');
-    resultDiv.innerHTML = `
-        <h3>Results:</h3>
-        <p>Total Investment: ${formatCurrency(totalInvestment)}</p>
-        <p>Expected Future Value: ${formatCurrency(futureValue)}</p>
-        <p>Wealth Gained: ${formatCurrency(wealthGained)}</p>
-        <p>Real Return Rate (Inflation Adjusted): ${realReturnRate.toFixed(2)}%</p>
-        <p>Real Future Value (Today's Money): ${formatCurrency(futureValue / Math.pow(1 + inflationRate/100, years))}</p>
+function createNewRow(isLastRow = false, listId = 'prepaymentList') {
+    const row = document.createElement('div');
+    row.className = 'prepayment-row';
+    row.innerHTML = `
+        <div class="input-group">
+            <input type="number" class="prepay-month" min="1" step="1" placeholder="Month">
+        </div>
+        <div class="input-group">
+            <input type="number" class="prepay-amount" min="0" step="1000" placeholder="Amount">
+        </div>
+        <div class="action-col">
+            <button class="remove-prepayment" title="${isLastRow ? 'Add' : 'Remove'}" data-action="${isLastRow ? 'add' : 'remove'}">
+                ${isLastRow ? '+' : '×'}
+            </button>
+        </div>
     `;
-    resultDiv.classList.add('visible');
-}
+    
+    const button = row.querySelector('.remove-prepayment');
+    const monthInput = row.querySelector('.prepay-month');
+    const amountInput = row.querySelector('.prepay-amount');
+    const list = document.getElementById(listId);
 
-// Calculate SWP (Systematic Withdrawal Plan)
-function calculateSWP() {
-    const initialAmount = parseFloat(document.getElementById('initialAmount').value);
-    const monthlyWithdrawal = parseFloat(document.getElementById('swpAmount').value);
-    const years = parseInt(document.getElementById('swpYears').value);
-    const returnRate = parseFloat(document.getElementById('swpReturn').value);
-    const inflationRate = parseFloat(document.getElementById('swpInflation').value) || 0;
-
-    if (!initialAmount || !monthlyWithdrawal || !years || !returnRate) {
-        alert('Please fill in all required fields');
-        return;
-    }
-
-    // Calculate real return rate adjusted for inflation
-    const realReturnRate = ((1 + returnRate/100) / (1 + inflationRate/100) - 1) * 100;
-    const monthlyRate = realReturnRate / (12 * 100);
-    const totalMonths = years * 12;
-    let currentBalance = initialAmount;
-    let totalWithdrawn = 0;
-    let monthsLasted = 0;
-
-    for (let month = 1; month <= totalMonths; month++) {
-        // Calculate monthly returns
-        currentBalance *= (1 + monthlyRate);
-        
-        // Withdraw the monthly amount
-        if (currentBalance >= monthlyWithdrawal) {
-            currentBalance -= monthlyWithdrawal;
-            totalWithdrawn += monthlyWithdrawal;
-            monthsLasted = month;
+    button.addEventListener('click', () => {
+        if (button.dataset.action === 'add') {
+            if (monthInput.value && amountInput.value) {
+                button.textContent = '×';
+                button.title = 'Remove';
+                button.dataset.action = 'remove';
+                list.appendChild(createNewRow(true, listId));
+            }
         } else {
-            break;
+            const rows = list.querySelectorAll('.prepayment-row');
+            if (rows.length > 1 && row !== rows[rows.length - 1]) {
+                row.remove();
+            } else {
+                monthInput.value = '';
+                amountInput.value = '';
+            }
         }
-    }
+    });
 
-    const resultDiv = document.getElementById('swpResult');
-    resultDiv.innerHTML = `
-        <h3>Results:</h3>
-        <p>Total Amount Withdrawn: ${formatCurrency(totalWithdrawn)}</p>
-        <p>Remaining Balance: ${formatCurrency(currentBalance)}</p>
-        <p>Real Return Rate (Inflation Adjusted): ${realReturnRate.toFixed(2)}%</p>
-        <p>Real Remaining Balance (Today's Money): ${formatCurrency(currentBalance / Math.pow(1 + inflationRate/100, years))}</p>
-    `;
+    return row;
+}
 
-    if (monthsLasted < totalMonths) {
-        resultDiv.innerHTML += `
-            <p class="warning">⚠️ Warning: Funds will be exhausted after ${Math.floor(monthsLasted/12)} years and ${monthsLasted%12} months at this withdrawal rate.</p>
-        `;
-    }
+// Toggle loan comparison
+function toggleComparison() {
+    const isEnabled = document.getElementById('enableComparison').checked;
+    const loan2Form = document.getElementById('loan2');
+    const emiResult = document.getElementById('emiResult');
     
-    resultDiv.classList.add('visible');
+    if (isEnabled) {
+        loan2Form.classList.add('visible');
+        emiResult.classList.add('comparison-enabled');
+    } else {
+        loan2Form.classList.remove('visible');
+        emiResult.classList.remove('comparison-enabled');
+    }
 }
 
 // Calculate EMI
-function calculateEMI() {
-    const loanAmount = parseFloat(document.getElementById('loanAmount').value);
-    const annualRate = parseFloat(document.getElementById('interestRate').value);
-    const loanTermMonths = parseInt(document.getElementById('loanTerm').value);
-    const monthlyExtra = parseFloat(document.getElementById('monthlyExtra').value) || 0;
+function calculateEMI(loanId = 'loan1') {
+    const suffix = loanId === 'loan1' ? '' : '2';
+    const loanAmount = parseFloat(document.getElementById('loanAmount' + suffix).value);
+    const annualRate = parseFloat(document.getElementById('interestRate' + suffix).value);
+    const loanTermMonths = parseInt(document.getElementById('loanTerm' + suffix).value);
+    const monthlyExtra = parseFloat(document.getElementById('monthlyExtra' + suffix).value) || 0;
 
     if (!loanAmount || !annualRate || !loanTermMonths) {
-        alert('Please fill in all required fields');
+        alert('Please fill in all required fields for ' + (loanId === 'loan1' ? 'Loan 1' : 'Loan 2'));
         return;
     }
 
@@ -197,7 +113,7 @@ function calculateEMI() {
 
     // Get prepayment details
     const prepayments = [];
-    document.querySelectorAll('.prepayment-row').forEach(row => {
+    document.querySelectorAll('#prepaymentList' + suffix + ' .prepayment-row').forEach(row => {
         const month = parseInt(row.querySelector('.prepay-month').value);
         const amount = parseFloat(row.querySelector('.prepay-amount').value);
         if (month && amount) {
@@ -239,7 +155,6 @@ function calculateEMI() {
         }
 
         balance -= (monthlyExtraPayment + lumpsumPayment);
-
         totalInterest += interestPayment;
         balance -= principalPayment;
 
@@ -263,22 +178,19 @@ function calculateEMI() {
     }
 
     // Update summary
-    document.getElementById('monthlyEMI').textContent = formatCurrency(monthlyEMI);
-    document.getElementById('totalInterestWithout').textContent = formatCurrency(regularTotalInterest);
-    document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
-    document.getElementById('totalPayment').textContent = formatCurrency(loanAmount + totalInterest);
-    document.getElementById('interestSaved').textContent = formatCurrency(regularTotalInterest - totalInterest);
-    
-    // Calculate and display loan periods
-    document.getElementById('originalTerm').textContent = loanTermMonths + ' months';
+    document.getElementById('monthlyEMI' + suffix).textContent = formatCurrency(monthlyEMI);
+    document.getElementById('totalInterestWithout' + suffix).textContent = formatCurrency(regularTotalInterest);
+    document.getElementById('totalInterest' + suffix).textContent = formatCurrency(totalInterest);
+    document.getElementById('totalPayment' + suffix).textContent = formatCurrency(loanAmount + totalInterest);
+    document.getElementById('interestSaved' + suffix).textContent = formatCurrency(regularTotalInterest - totalInterest);
+    document.getElementById('originalTerm' + suffix).textContent = loanTermMonths + ' months';
     const actualTermMonths = schedule.length;
-    document.getElementById('newTerm').textContent = actualTermMonths + ' months';
-    
+    document.getElementById('newTerm' + suffix).textContent = actualTermMonths + ' months';
     const monthsSaved = loanTermMonths - actualTermMonths;
-    document.getElementById('timeSaved').textContent = monthsSaved + ' months';
+    document.getElementById('timeSaved' + suffix).textContent = monthsSaved + ' months';
 
     // Update amortization table
-    const tableBody = document.getElementById('amortizationTable').querySelector('tbody');
+    const tableBody = document.getElementById('amortizationTable' + suffix).querySelector('tbody');
     tableBody.innerHTML = '';
     schedule.forEach(row => {
         const tr = document.createElement('tr');
@@ -290,40 +202,46 @@ function calculateEMI() {
             <td>${formatCurrency(row.emi)}</td>
             <td>${formatCurrency(row.principal)}</td>
             <td>${formatCurrency(row.interest)}</td>
-            <td class="monthly-extra">${monthlyExtraValue > 0 ? formatCurrency(monthlyExtraValue) : formatCurrency(0)}</td>
-            <td class="lumpsum">${lumpsumValue > 0 ? formatCurrency(lumpsumValue) : formatCurrency(0)}</td>
+            <td class="monthly-extra">${monthlyExtraValue > 0 ? formatCurrency(monthlyExtraValue) : '-'}</td>
+            <td class="lumpsum">${lumpsumValue > 0 ? formatCurrency(lumpsumValue) : '-'}</td>
             <td>${formatCurrency(row.balance)}</td>
         `;
         tableBody.appendChild(tr);
     });
 
     // Update charts
-    updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData);
-    updateOutstandingBalanceChart(balanceData);
+    updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData, loanId);
+    updateOutstandingBalanceChart(balanceData, loanId);
 
     document.getElementById('emiResult').classList.add('visible');
 }
 
-// Update Payment Breakdown Chart
-function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData) {
-    const ctx = document.getElementById('paymentBreakdown').getContext('2d');
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraData, lumpsumData, loanId) {
+    const chartId = `paymentBreakdown${loanId === 'loan2' ? '2' : ''}`;
+    const ctx = document.getElementById(chartId).getContext('2d');
     
-    if (paymentBreakdownChart) {
-        paymentBreakdownChart.destroy();
+    if (charts[loanId].paymentBreakdown) {
+        charts[loanId].paymentBreakdown.destroy();
     }
 
-    // Calculate proportions for each month
     const totalsByMonth = principalData.map((principal, index) => 
         principal + interestData[index] + monthlyExtraData[index] + lumpsumData[index]
     );
 
-    // Convert raw values to proportions
     const principalProportions = principalData.map((value, index) => value / totalsByMonth[index] || 0);
     const interestProportions = interestData.map((value, index) => value / totalsByMonth[index] || 0);
     const monthlyExtraProportions = monthlyExtraData.map((value, index) => value / totalsByMonth[index] || 0);
     const lumpsumProportions = lumpsumData.map((value, index) => value / totalsByMonth[index] || 0);
 
-    paymentBreakdownChart = new Chart(ctx, {
+    charts[loanId].paymentBreakdown = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: Array.from({length: principalData.length}, (_, i) => i + 1),
@@ -392,7 +310,7 @@ function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraDa
             plugins: {
                 title: {
                     display: true,
-                    text: 'Payment Breakdown',
+                    text: `Payment Breakdown - ${loanId === 'loan1' ? 'Loan 1' : 'Loan 2'}`,
                     padding: 20,
                     font: {
                         size: 16,
@@ -417,11 +335,7 @@ function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraDa
                                            context.dataset.label === 'Monthly Extra' ? monthlyExtraData[dataIndex] :
                                            lumpsumData[dataIndex];
                             
-                            return `${context.dataset.label}: ${new Intl.NumberFormat('en-IN', {
-                                style: 'currency',
-                                currency: 'INR',
-                                maximumFractionDigits: 0
-                            }).format(rawValue)} (${(context.parsed.y * 100).toFixed(1)}%)`;
+                            return `${context.dataset.label}: ${formatCurrency(rawValue)} (${(context.parsed.y * 100).toFixed(1)}%)`;
                         }
                     }
                 }
@@ -430,15 +344,15 @@ function updatePaymentBreakdownChart(principalData, interestData, monthlyExtraDa
     });
 }
 
-// Update Outstanding Balance Chart
-function updateOutstandingBalanceChart(balanceData) {
-    const ctx = document.getElementById('outstandingBalance').getContext('2d');
+function updateOutstandingBalanceChart(balanceData, loanId) {
+    const chartId = `outstandingBalance${loanId === 'loan2' ? '2' : ''}`;
+    const ctx = document.getElementById(chartId).getContext('2d');
     
-    if (outstandingBalanceChart) {
-        outstandingBalanceChart.destroy();
+    if (charts[loanId].outstandingBalance) {
+        charts[loanId].outstandingBalance.destroy();
     }
 
-    outstandingBalanceChart = new Chart(ctx, {
+    charts[loanId].outstandingBalance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: Array.from({length: balanceData.length}, (_, i) => i),
@@ -497,7 +411,7 @@ function updateOutstandingBalanceChart(balanceData) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Outstanding Balance',
+                    text: `Outstanding Balance - ${loanId === 'loan1' ? 'Loan 1' : 'Loan 2'}`,
                     padding: 20,
                     font: {
                         size: 16,
@@ -505,22 +419,12 @@ function updateOutstandingBalanceChart(balanceData) {
                     }
                 },
                 legend: {
-                    position: 'bottom',
-                    align: 'center',
-                    labels: {
-                        boxWidth: 12,
-                        usePointStyle: true,
-                        padding: 20
-                    }
+                    display: false
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Balance: ' + new Intl.NumberFormat('en-IN', {
-                                style: 'currency',
-                                currency: 'INR',
-                                maximumFractionDigits: 0
-                            }).format(context.parsed.y);
+                            return 'Balance: ' + formatCurrency(context.parsed.y);
                         }
                     }
                 }

@@ -19,6 +19,15 @@
 
         <div id="emi" class="calculator-section tab-content active">
             <h2>EMI Calculator with Prepayment Options</h2>
+            <div class="comparison-controls">
+                <label class="comparison-toggle">
+                    <input type="checkbox" id="enableComparison" onchange="toggleComparison()">
+                    Enable Loan Comparison
+                </label>
+            </div>
+            <div class="loan-comparison">
+                <div class="loan-form" id="loan1">
+                    <h3>Loan Scenario 1</h3>
             <div class="loan-details">
                 <h3>Loan Details</h3>
                 <div class="input-group">
@@ -61,73 +70,200 @@
                 </div>
             </div>
 
-            <button onclick="calculateEMI()">Calculate EMI</button>
+                <button onclick="calculateEMI('loan1')" class="calculate-button">Calculate Loan 1</button>
+            </div>
+
+            <div class="loan-form" id="loan2">
+                <h3>Loan Scenario 2</h3>
+                <div class="loan-details">
+                    <h3>Loan Details</h3>
+                    <div class="input-group">
+                        <label for="loanAmount2">Loan Amount (₹)</label>
+                        <input type="number" id="loanAmount2" min="0" step="1000" placeholder="e.g., 100000">
+                    </div>
+                    <div class="input-group">
+                        <label for="interestRate2">Annual Interest Rate (%)</label>
+                        <input type="number" id="interestRate2" min="1" step="0.1" placeholder="e.g., 8">
+                    </div>
+                    <div class="input-group">
+                        <label for="loanTerm2">Loan Period (months)</label>
+                        <input type="number" id="loanTerm2" min="1" step="1" placeholder="e.g., 12">
+                    </div>
+                    <div class="input-group">
+                        <label for="monthlyExtra2">Monthly Extra Payment (₹)</label>
+                        <input type="number" id="monthlyExtra2" min="0" step="100" placeholder="e.g., 1000">
+                    </div>
+                </div>
+
+                <div class="prepayment-section">
+                    <h3>Lumpsum Prepayments</h3>
+                    <div class="prepayment-header">
+                        <div class="prepayment-col">Month</div>
+                        <div class="prepayment-col">Amount</div>
+                        <div class="prepayment-col action"></div>
+                    </div>
+                    <div class="prepayment-list" id="prepaymentList2">
+                        <div class="prepayment-row">
+                            <div class="input-group">
+                                <input type="number" class="prepay-month" min="1" step="1" placeholder="Month">
+                            </div>
+                            <div class="input-group">
+                                <input type="number" class="prepay-amount" min="0" step="1000" placeholder="Amount">
+                            </div>
+                            <div class="action-col">
+                                <button class="remove-prepayment" title="Remove" data-action="add">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="calculateEMI('loan2')" class="calculate-button">Calculate Loan 2</button>
+            </div>
 
             <div id="emiResult" class="result">
                 <div class="summary-section">
                     <h3>Summary</h3>
                     <div class="summary-grid">
-                        <div class="summary-item">
-                            <label>Monthly EMI</label>
-                            <span id="monthlyEMI"></span>
+                        <!-- Loan 1 Summary -->
+                        <div class="loan-summary" id="summary1">
+                            <h4>Loan 1 Summary</h4>
+                            <div class="summary-item">
+                                <label>Monthly EMI</label>
+                                <span id="monthlyEMI"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Interest (Without Prepayment)</label>
+                                <span id="totalInterestWithout"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Interest (With Prepayment)</label>
+                                <span id="totalInterest"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Payment</label>
+                                <span id="totalPayment"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Interest Saved</label>
+                                <span id="interestSaved"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Original Loan Period</label>
+                                <span id="originalTerm"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>New Loan Period</label>
+                                <span id="newTerm"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Time Saved</label>
+                                <span id="timeSaved"></span>
+                            </div>
                         </div>
-                        <div class="summary-item">
-                            <label>Total Interest (Without Prepayment)</label>
-                            <span id="totalInterestWithout"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Total Interest (With Prepayment)</label>
-                            <span id="totalInterest"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Total Payment</label>
-                            <span id="totalPayment"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Interest Saved</label>
-                            <span id="interestSaved"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Original Loan Period</label>
-                            <span id="originalTerm"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>New Loan Period</label>
-                            <span id="newTerm"></span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Time Saved</label>
-                            <span id="timeSaved"></span>
+
+                        <!-- Loan 2 Summary -->
+                        <div class="loan-summary" id="summary2">
+                            <h4>Loan 2 Summary</h4>
+                            <div class="summary-item">
+                                <label>Monthly EMI</label>
+                                <span id="monthlyEMI2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Interest (Without Prepayment)</label>
+                                <span id="totalInterestWithout2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Interest (With Prepayment)</label>
+                                <span id="totalInterest2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Total Payment</label>
+                                <span id="totalPayment2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Interest Saved</label>
+                                <span id="interestSaved2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Original Loan Period</label>
+                                <span id="originalTerm2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>New Loan Period</label>
+                                <span id="newTerm2"></span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Time Saved</label>
+                                <span id="timeSaved2"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="charts-section">
-                    <div class="chart">
-                        <canvas id="paymentBreakdown"></canvas>
+                    <!-- Loan 1 Charts -->
+                    <div class="loan-charts" id="charts1">
+                        <h4>Loan 1 Charts</h4>
+                        <div class="chart">
+                            <canvas id="paymentBreakdown"></canvas>
+                        </div>
+                        <div class="chart">
+                            <canvas id="outstandingBalance"></canvas>
+                        </div>
                     </div>
-                    <div class="chart">
-                        <canvas id="outstandingBalance"></canvas>
+
+                    <!-- Loan 2 Charts -->
+                    <div class="loan-charts" id="charts2">
+                        <h4>Loan 2 Charts</h4>
+                        <div class="chart">
+                            <canvas id="paymentBreakdown2"></canvas>
+                        </div>
+                        <div class="chart">
+                            <canvas id="outstandingBalance2"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div class="amortization-table">
-                    <h3>Amortization Schedule</h3>
-                    <div class="table-container">
-                        <table id="amortizationTable">
-                            <thead>
-                                <tr>
-                                    <th>Month</th>
-                                    <th>EMI</th>
-                                    <th>Principal</th>
-                                    <th>Interest</th>
-                                    <th>Monthly Extra</th>
-                                    <th>Lumpsum</th>
-                                    <th>Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                <div class="amortization-tables">
+                    <!-- Loan 1 Table -->
+                    <div class="loan-table" id="table1">
+                        <h4>Loan 1 Amortization Schedule</h4>
+                        <div class="table-container">
+                            <table id="amortizationTable">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>EMI</th>
+                                        <th>Principal</th>
+                                        <th>Interest</th>
+                                        <th>Monthly Extra</th>
+                                        <th>Lumpsum</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Loan 2 Table -->
+                    <div class="loan-table" id="table2">
+                        <h4>Loan 2 Amortization Schedule</h4>
+                        <div class="table-container">
+                            <table id="amortizationTable2">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>EMI</th>
+                                        <th>Principal</th>
+                                        <th>Interest</th>
+                                        <th>Monthly Extra</th>
+                                        <th>Lumpsum</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

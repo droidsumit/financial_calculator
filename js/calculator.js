@@ -12,16 +12,43 @@ const charts = {
 
 // Tab switching functionality
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Document loaded, setting up tabs...');
+    
+    // Log initial tab state
     const tabs = document.querySelectorAll('.tab-button');
+    console.log('Found tabs:', tabs.length);
+    tabs.forEach(tab => console.log('Tab:', tab.dataset.tab));
+    
+    // Log initial content state
+    const contents = document.querySelectorAll('.calculator-section');
+    console.log('Found calculator sections:', contents.length);
+    contents.forEach(content => {
+        console.log('Content:', content.id, 'Classes:', content.className);
+    });
+    
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Remove active class from all tabs and contents
-            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            // Add active class to clicked tab and corresponding content
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
+            try {
+                // Get the target content ID
+                const targetId = tab.dataset.tab;
+                console.log('Switching to tab:', targetId);
+                
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.calculator-section').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const content = document.getElementById(targetId);
+                if (!content) {
+                    console.error('Could not find content for tab:', targetId);
+                    return;
+                }
+                content.classList.add('active');
+                console.log('Tab switch complete');
+            } catch (error) {
+                console.error('Error switching tabs:', error);
+            }
         });
     });
 
@@ -431,4 +458,121 @@ function updateOutstandingBalanceChart(balanceData, loanId) {
             }
         }
     });
+}
+
+// SIP Calculator
+function calculateSIP() {
+    console.log('Calculating SIP...');
+    const monthlyAmount = parseFloat(document.getElementById('sipAmount').value);
+    const years = parseFloat(document.getElementById('sipYears').value);
+    const returnRate = parseFloat(document.getElementById('sipReturn').value);
+    const stepUp = parseFloat(document.getElementById('stepUp').value) || 0;
+    const inflation = parseFloat(document.getElementById('sipInflation').value) || 0;
+    
+    if (!monthlyAmount || !years || !returnRate) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const months = years * 12;
+    const monthlyRate = returnRate / 12 / 100;
+    const stepUpRate = stepUp / 100;
+    let totalInvestment = 0;
+    let maturityValue = 0;
+    let currentMonthlyAmount = monthlyAmount;
+
+    for (let year = 0; year < years; year++) {
+        for (let month = 0; month < 12; month++) {
+            totalInvestment += currentMonthlyAmount;
+            maturityValue += currentMonthlyAmount;
+            maturityValue *= (1 + monthlyRate);
+        }
+        // Apply step-up at the end of each year
+        currentMonthlyAmount *= (1 + stepUpRate);
+    }
+
+    // Calculate inflation-adjusted value
+    const realReturn = ((1 + returnRate/100)/(1 + inflation/100) - 1) * 100;
+    const inflationAdjustedValue = maturityValue / Math.pow(1 + inflation/100, years);
+
+    const resultHTML = `
+        <div class="result-section">
+            <h3>SIP Results</h3>
+            <p class="result-item">Total Investment: <span class="highlight">${formatCurrency(totalInvestment)}</span></p>
+            <p class="result-item">Maturity Value: <span class="highlight">${formatCurrency(maturityValue)}</span></p>
+            <p class="result-item">Wealth Gained: <span class="highlight">${formatCurrency(maturityValue - totalInvestment)}</span></p>
+            <p class="result-item">Real Return Rate: <span class="highlight">${realReturn.toFixed(2)}%</span></p>
+            <p class="result-item">Inflation Adjusted Value: <span class="highlight">${formatCurrency(inflationAdjustedValue)}</span></p>
+        </div>
+    `;
+
+    document.getElementById('sipResult').innerHTML = resultHTML;
+    document.getElementById('sipResult').classList.add('visible');
+    console.log('SIP calculation complete');
+}
+
+// SWP Calculator
+function calculateSWP() {
+    console.log('Calculating SWP...');
+    const corpus = parseFloat(document.getElementById('swpCorpus').value);
+    const withdrawal = parseFloat(document.getElementById('swpWithdrawal').value);
+    const years = parseFloat(document.getElementById('swpYears').value);
+    const returnRate = parseFloat(document.getElementById('swpReturn').value);
+    const inflation = parseFloat(document.getElementById('swpInflation').value) || 0;
+    
+    if (!corpus || !withdrawal || !years || !returnRate) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const months = years * 12;
+    const monthlyRate = returnRate / 12 / 100;
+    const inflationRate = inflation / 12 / 100;
+    
+    let remainingCorpus = corpus;
+    let totalWithdrawal = 0;
+    let currentMonthlyWithdrawal = withdrawal;
+    let monthsRemaining = months;
+
+    for (let i = 0; i < months && remainingCorpus > 0; i++) {
+        // Increase withdrawal amount for inflation
+        if (i > 0 && i % 12 === 0) {
+            currentMonthlyWithdrawal *= (1 + inflation/100);
+        }
+
+        // Calculate monthly investment return
+        remainingCorpus *= (1 + monthlyRate);
+        
+        // Deduct withdrawal
+        if (remainingCorpus >= currentMonthlyWithdrawal) {
+            remainingCorpus -= currentMonthlyWithdrawal;
+            totalWithdrawal += currentMonthlyWithdrawal;
+        } else {
+            totalWithdrawal += remainingCorpus;
+            remainingCorpus = 0;
+            monthsRemaining = i + 1;
+            break;
+        }
+    }
+
+    const resultHTML = `
+        <div class="result-section">
+            <h3>SWP Results</h3>
+            <p class="result-item">Initial Corpus: <span class="highlight">${formatCurrency(corpus)}</span></p>
+            <p class="result-item">Total Withdrawals: <span class="highlight">${formatCurrency(totalWithdrawal)}</span></p>
+            <p class="result-item">Remaining Corpus: <span class="highlight">${formatCurrency(remainingCorpus)}</span></p>
+            <p class="result-item">Monthly Withdrawal (Final): <span class="highlight">${formatCurrency(currentMonthlyWithdrawal)}</span></p>
+            <p class="result-item ${remainingCorpus <= 0 ? 'warning' : ''}">
+                Sustainability: <span class="highlight">
+                    ${remainingCorpus <= 0 
+                        ? `Corpus depleted in ${monthsRemaining} months!` 
+                        : 'Sustainable for the entire period'}
+                </span>
+            </p>
+        </div>
+    `;
+
+    document.getElementById('swpResult').innerHTML = resultHTML;
+    document.getElementById('swpResult').classList.add('visible');
+    console.log('SWP calculation complete');
 }

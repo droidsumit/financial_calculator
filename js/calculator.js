@@ -576,3 +576,339 @@ function calculateSWP() {
     document.getElementById('swpResult').classList.add('visible');
     console.log('SWP calculation complete');
 }
+
+// Tax Regime Constants
+const OLD_REGIME_SLABS = [
+    { limit: 250000, rate: 0 },
+    { limit: 500000, rate: 5 },
+    { limit: 750000, rate: 10 },
+    { limit: 1000000, rate: 15 },
+    { limit: 1250000, rate: 20 },
+    { limit: 1500000, rate: 25 },
+    { limit: Infinity, rate: 30 }
+];
+
+const NEW_REGIME_SLABS = [
+    { limit: 300000, rate: 0 },
+    { limit: 600000, rate: 5 },
+    { limit: 900000, rate: 10 },
+    { limit: 1200000, rate: 15 },
+    { limit: 1500000, rate: 20 },
+    { limit: Infinity, rate: 30 }
+];
+
+// ITR Calculator Functions
+function toggleDetailedMode() {
+    const detailedMode = document.getElementById('enableDetailedMode').checked;
+    document.querySelectorAll('.section-card').forEach(section => {
+        if (section.classList.contains('detailed-only')) {
+            section.style.display = detailedMode ? 'block' : 'none';
+        }
+    });
+}
+
+function calculateITR() {
+    // Gather Income Data
+    const income = {
+        regular: {
+            basic: getInputValue('basicSalary'),
+            hra: getInputValue('hra'),
+            special: getInputValue('specialAllowance'),
+            lta: getInputValue('lta'),
+            food: getInputValue('foodAllowance')
+        },
+        stocks: {
+            rsu: getInputValue('rsuIncome'),
+            espp: getInputValue('esppIncome'),
+            esop: getInputValue('esopBenefit')
+        },
+        variable: {
+            performance: getInputValue('performanceBonus'),
+            joining: getInputValue('joiningBonus'),
+            retention: getInputValue('retentionBonus')
+        },
+        special: {
+            gratuity: getInputValue('gratuity'),
+            leave: getInputValue('leaveEncashment'),
+            severance: getInputValue('severancePackage')
+        }
+    };
+
+    // Calculate Deductions (Old Regime)
+    const deductions = calculateDeductions();
+    
+    // Calculate Tax for Both Regimes
+    const oldRegimeTax = calculateOldRegimeTax(income, deductions);
+    const newRegimeTax = calculateNewRegimeTax(income);
+    
+    // Display Results
+    displayTaxResults(income, deductions, oldRegimeTax, newRegimeTax);
+    
+    // Update Charts
+    updateTaxCharts(income, deductions, oldRegimeTax, newRegimeTax);
+    
+    // Show Tax Saving Recommendations
+    showTaxRecommendations(oldRegimeTax, newRegimeTax, deductions);
+}
+
+function calculateDeductions() {
+    const deductions = {
+        section80C: {
+            epf: getInputValue('epf'),
+            ppf: getInputValue('ppf'),
+            elss: getInputValue('elss')
+        },
+        housing: {
+            interest: getInputValue('homeLoanInterest'),
+            rentPaid: getInputValue('rentPaid'),
+            isMetro: document.getElementById('metroCity').value === 'yes'
+        },
+        other: {
+            medical: getInputValue('medicalInsurance'),
+            nps: getInputValue('nps'),
+            savings: getInputValue('savingsInterest')
+        }
+    };
+
+    // Calculate total 80C (max 1.5L)
+    deductions.total80C = Math.min(150000, 
+        deductions.section80C.epf + 
+        deductions.section80C.ppf + 
+        deductions.section80C.elss
+    );
+
+    // Calculate HRA exemption
+    deductions.hraExemption = calculateHRAExemption(
+        getInputValue('basicSalary'),
+        getInputValue('hra'),
+        deductions.housing.rentPaid,
+        deductions.housing.isMetro
+    );
+
+    // Calculate other deductions
+    deductions.totalOther = 
+        Math.min(25000, deductions.other.medical) +  // 80D limit
+        Math.min(50000, deductions.other.nps) +      // 80CCD(1B) limit
+        Math.min(10000, deductions.other.savings);   // 80TTA limit
+
+    // Total deductions
+    deductions.total = deductions.total80C + 
+                      deductions.hraExemption +
+                      Math.min(200000, deductions.housing.interest) + // Home loan interest limit
+                      deductions.totalOther;
+
+    return deductions;
+}
+
+function calculateHRAExemption(basicSalary, hraReceived, rentPaid, isMetro) {
+    const exemption = Math.min(
+        hraReceived,
+        rentPaid - (0.1 * basicSalary),
+        isMetro ? (0.5 * basicSalary) : (0.4 * basicSalary)
+    );
+    return Math.max(0, exemption);
+}
+
+function calculateOldRegimeTax(income, deductions) {
+    // Calculate total income
+    const totalIncome = calculateTotalIncome(income);
+    
+    // Calculate taxable income after deductions
+    const taxableIncome = Math.max(0, totalIncome - deductions.total);
+    
+    // Calculate tax based on slabs
+    return calculateTaxOnIncome(taxableIncome, OLD_REGIME_SLABS);
+}
+
+function calculateNewRegimeTax(income) {
+    // Calculate total income
+    const totalIncome = calculateTotalIncome(income);
+    
+    // Standard deduction of 50,000 in new regime
+    const taxableIncome = Math.max(0, totalIncome - 50000);
+    
+    // Calculate tax based on new regime slabs
+    return calculateTaxOnIncome(taxableIncome, NEW_REGIME_SLABS);
+}
+
+function calculateTotalIncome(income) {
+    return Object.values(income).reduce((total, category) => 
+        total + Object.values(category).reduce((sum, value) => sum + value, 0), 0);
+}
+
+function calculateTaxOnIncome(income, slabs) {
+    let remainingIncome = income;
+    let totalTax = 0;
+    let previousLimit = 0;
+
+    for (const slab of slabs) {
+        const slabIncome = Math.min(remainingIncome, slab.limit - previousLimit);
+        if (slabIncome <= 0) break;
+
+        totalTax += (slabIncome * slab.rate) / 100;
+        remainingIncome -= slabIncome;
+        previousLimit = slab.limit;
+    }
+
+    // Add surcharge if applicable
+    if (income > 5000000) {
+        const surchargeRate = income > 10000000 ? 0.15 : 0.10;
+        totalTax += totalTax * surchargeRate;
+    }
+
+    // Add 4% cess
+    totalTax += totalTax * 0.04;
+
+    return totalTax;
+}
+
+function displayTaxResults(income, deductions, oldTax, newTax) {
+    const totalIncome = calculateTotalIncome(income);
+
+    // Update Old Regime Results
+    document.getElementById('oldRegimeGross').textContent = formatCurrency(totalIncome);
+    document.getElementById('oldRegimeDeductions').textContent = formatCurrency(deductions.total);
+    document.getElementById('oldRegimeTaxable').textContent = formatCurrency(totalIncome - deductions.total);
+    document.getElementById('oldRegimeTax').textContent = formatCurrency(oldTax);
+
+    // Update New Regime Results
+    document.getElementById('newRegimeGross').textContent = formatCurrency(totalIncome);
+    document.getElementById('newRegimeDeduction').textContent = formatCurrency(50000);
+    document.getElementById('newRegimeTaxable').textContent = formatCurrency(totalIncome - 50000);
+    document.getElementById('newRegimeTax').textContent = formatCurrency(newTax);
+
+    // Show Recommendation
+    const recommendation = document.getElementById('regimeRecommendation');
+    if (oldTax < newTax) {
+        recommendation.innerHTML = `<strong>Recommendation:</strong> Choose Old Tax Regime and save ${formatCurrency(newTax - oldTax)} annually`;
+    } else {
+        recommendation.innerHTML = `<strong>Recommendation:</strong> Choose New Tax Regime and save ${formatCurrency(oldTax - newTax)} annually`;
+    }
+
+    // Show Tax Saving Suggestions
+    showTaxSavingSuggestions(income, deductions, oldTax, newTax);
+}
+
+function updateTaxCharts(income, deductions, oldTax, newTax) {
+    // Tax Comparison Chart
+    const taxCompCtx = document.getElementById('taxComparisonChart').getContext('2d');
+    new Chart(taxCompCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Old Regime', 'New Regime'],
+            datasets: [{
+                label: 'Tax Liability',
+                data: [oldTax, newTax],
+                backgroundColor: ['#6052FF', '#4CAF50'],
+                borderColor: ['#4A3ECC', '#388E3C'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Tax Liability Comparison'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Tax: ' + formatCurrency(context.raw);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Income Distribution Chart
+    const totalIncome = calculateTotalIncome(income);
+    const incomeDistCtx = document.getElementById('incomeDistributionChart').getContext('2d');
+    new Chart(incomeDistCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Regular Salary', 'Stock Benefits', 'Variable Pay', 'Special Payments'],
+            datasets: [{
+                data: [
+                    Object.values(income.regular).reduce((a, b) => a + b, 0),
+                    Object.values(income.stocks).reduce((a, b) => a + b, 0),
+                    Object.values(income.variable).reduce((a, b) => a + b, 0),
+                    Object.values(income.special).reduce((a, b) => a + b, 0)
+                ],
+                backgroundColor: ['#6052FF', '#FF6B6B', '#4CAF50', '#FFA726']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Income Distribution'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const percentage = ((value / totalIncome) * 100).toFixed(1);
+                            return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function showTaxSavingSuggestions(income, deductions, oldTax, newTax) {
+    const suggestions = document.getElementById('savingsSuggestions');
+    let suggestionText = '<h4>Tax Saving Opportunities:</h4><ul>';
+
+    // Check 80C utilization
+    const remaining80C = 150000 - deductions.total80C;
+    if (remaining80C > 0) {
+        suggestionText += `<li>Invest ₹${remaining80C.toLocaleString()} more in 80C options (ELSS, PPF, etc.)</li>`;
+    }
+
+    // Check NPS utilization
+    const remainingNPS = 50000 - deductions.other.nps;
+    if (remainingNPS > 0) {
+        suggestionText += `<li>Consider investing in NPS to save additional tax (up to ₹${remainingNPS.toLocaleString()})</li>`;
+    }
+
+    // Home loan suggestions
+    if (deductions.housing.interest === 0) {
+        suggestionText += '<li>Consider home loan benefits under Section 24 and 80EEA</li>';
+    }
+
+    // Medical insurance
+    if (deductions.other.medical < 25000) {
+        suggestionText += '<li>Buy medical insurance to claim deduction under Section 80D</li>';
+    }
+
+    suggestionText += '</ul>';
+    suggestions.innerHTML = suggestionText;
+}
+
+function resetForm() {
+    // Reset all input fields
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.value = '';
+    });
+    
+    // Reset select fields
+    document.getElementById('metroCity').value = 'no';
+    
+    // Reset results
+    document.getElementById('itrResult').style.display = 'none';
+    
+    // Reset detailed mode
+    document.getElementById('enableDetailedMode').checked = false;
+    toggleDetailedMode();
+}
+
+function getInputValue(id) {
+    return parseFloat(document.getElementById(id).value) || 0;
+}

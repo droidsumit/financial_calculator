@@ -38,6 +38,64 @@ A locally hosted financial calculator that helps users calculate:
   - Separate columns for Monthly Extra and Lumpsum prepayments
   - Remaining loan balance
 
+### ITR Calculator (Planned)
+- Compare tax liability under old and new regimes
+- Specialized for IT industry professionals
+- Income Sources:
+  - Salary Components:
+    - Basic salary
+    - HRA (House Rent Allowance)
+    - Special allowances
+    - LTA (Leave Travel Allowance)
+    - Food coupons/allowance
+  - Stock Benefits:
+    - RSU (Restricted Stock Units)
+    - ESPP (Employee Stock Purchase Plan)
+    - ESOPs (Employee Stock Option Plan)
+  - Variable Pay:
+    - Performance bonus
+    - Joining bonus
+    - Retention bonus
+  - Special Payments:
+    - Severance package
+    - Gratuity
+    - Leave encashment
+    - Retrenchment compensation
+
+- Deductions and Exemptions (Old Regime):
+  - Section 80C (PF, PPF, ELSS, etc.)
+  - Section 80D (Medical Insurance)
+  - HRA Exemption
+  - LTA Exemption
+  - Standard Deduction
+  - Professional Tax
+  - Section 16 Deductions
+  - NPS Contributions (80CCD)
+  - Home Loan Benefits (80EE, 80EEA)
+  - Interest on Savings (80TTA)
+  - Other Applicable Deductions
+
+- Features:
+  - Side-by-side regime comparison
+  - Detailed tax breakup
+  - Tax saving suggestions
+  - Optimized deductions calculator
+  - Multiple income scenario comparison
+  - Graphical representation of:
+    - Tax liability comparison
+    - Income distribution
+    - Deductions utilization
+    - Effective tax rate
+
+- Results Display:
+  - Total tax liability under both regimes
+  - Regime-wise detailed breakup
+  - Monthly tax liability
+  - Effective tax rate
+  - Tax saving opportunities
+  - Optimal regime recommendation
+  - Advanced tax payment schedule
+
 ## How to Use
 
 1. Open `index.html` in a web browser

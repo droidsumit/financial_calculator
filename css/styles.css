@@ -561,3 +561,257 @@ button:hover {
         width: 100%;
     }
 }
+
+.income-section, .additional-income {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.income-section h3, .additional-income h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+/* Tax comparison specific styles */
+#itr .charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+#itr .chart {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    height: 300px;
+}
+
+#itr .result {
+    margin-top: 2rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.tax-comparison {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.tax-scheme {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tax-scheme.old-regime {
+    border-left: 4px solid #4CAF50;
+}
+
+.tax-scheme.new-regime {
+    border-left: 4px solid #2196F3;
+}
+
+.tax-amount {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1rem 0;
+    color: #2c3e50;
+}
+
+.tax-breakup {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.savings-highlight {
+    background: #e8f5e9;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* ITR Calculator Styles */
+.tax-calculator-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.income-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.section-card {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-card h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+.subsection {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.subsection h4 {
+    color: #34495e;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.calculate-button.primary {
+    background: #6052FF;
+}
+
+.reset-button {
+    background: #e9ecef;
+    color: #2c3e50;
+}
+
+.result-section {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tax-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.regime-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.regime-card.old-regime {
+    border-left: 4px solid #6052FF;
+}
+
+.regime-card.new-regime {
+    border-left: 4px solid #4CAF50;
+}
+
+.result-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem;
+    background: white;
+    border-radius: 5px;
+}
+
+.result-item.highlighted {
+    background: #e8f5e9;
+    font-weight: 600;
+}
+
+.recommendation-card {
+    background: #e3f2fd;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.chart-container {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    height: 300px;
+}
+
+.detailed-breakdown {
+    margin-top: 2rem;
+}
+
+.breakdown-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.breakdown-tables table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.breakdown-tables th,
+.breakdown-tables td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.breakdown-tables th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .income-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .tax-comparison {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .breakdown-tables {
+        grid-template-columns: 1fr;
+    }
+}

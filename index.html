@@ -17,6 +17,7 @@
             <button class="tab-button active" data-tab="emi">EMI Calculator</button>
             <button class="tab-button" data-tab="sip">SIP Calculator</button>
             <button class="tab-button" data-tab="swp">SWP Calculator</button>
+            <button class="tab-button" data-tab="itr">ITR Calculator</button>
         </div>
 
         <div id="emi" class="calculator-section tab-content active">
@@ -321,6 +322,261 @@
             </div>
             <button onclick="calculateSWP()">Calculate SWP</button>
             <div id="swpResult" class="result"></div>
+        </div>
+
+        <div id="itr" class="calculator-section tab-content">
+            <h2>Income Tax Calculator (Old vs New Regime)</h2>
+            <div class="comparison-controls">
+                <label class="comparison-toggle">
+                    <input type="checkbox" id="enableDetailedMode" onchange="toggleDetailedMode()">
+                    Enable Detailed Mode
+                </label>
+            </div>
+            
+            <div class="tax-calculator-container">
+                <!-- Income Sections -->
+                <div class="income-sections">
+                    <!-- Regular Salary Components -->
+                    <div class="section-card">
+                        <h3>Regular Salary Components</h3>
+                        <div class="input-group">
+                            <label for="basicSalary">Basic Salary (Annual)</label>
+                            <input type="number" id="basicSalary" min="0" step="1000" placeholder="e.g., 1200000">
+                        </div>
+                        <div class="input-group">
+                            <label for="hra">HRA Received</label>
+                            <input type="number" id="hra" min="0" step="1000" placeholder="e.g., 600000">
+                        </div>
+                        <div class="input-group">
+                            <label for="specialAllowance">Special Allowance</label>
+                            <input type="number" id="specialAllowance" min="0" step="1000" placeholder="e.g., 300000">
+                        </div>
+                        <div class="input-group">
+                            <label for="lta">LTA</label>
+                            <input type="number" id="lta" min="0" step="1000" placeholder="e.g., 50000">
+                        </div>
+                        <div class="input-group">
+                            <label for="foodAllowance">Food Allowance</label>
+                            <input type="number" id="foodAllowance" min="0" step="1000" placeholder="e.g., 26400">
+                        </div>
+                    </div>
+
+                    <!-- Stock Benefits -->
+                    <div class="section-card">
+                        <h3>Stock Benefits</h3>
+                        <div class="input-group">
+                            <label for="rsuIncome">RSU Income</label>
+                            <input type="number" id="rsuIncome" min="0" step="1000" placeholder="e.g., 500000">
+                        </div>
+                        <div class="input-group">
+                            <label for="esppIncome">ESPP Gains</label>
+                            <input type="number" id="esppIncome" min="0" step="1000" placeholder="e.g., 100000">
+                        </div>
+                        <div class="input-group">
+                            <label for="esopBenefit">ESOP Benefit</label>
+                            <input type="number" id="esopBenefit" min="0" step="1000" placeholder="e.g., 200000">
+                        </div>
+                    </div>
+
+                    <!-- Variable Pay -->
+                    <div class="section-card">
+                        <h3>Variable Pay</h3>
+                        <div class="input-group">
+                            <label for="performanceBonus">Performance Bonus</label>
+                            <input type="number" id="performanceBonus" min="0" step="1000" placeholder="e.g., 200000">
+                        </div>
+                        <div class="input-group">
+                            <label for="joiningBonus">Joining Bonus</label>
+                            <input type="number" id="joiningBonus" min="0" step="1000" placeholder="e.g., 100000">
+                        </div>
+                        <div class="input-group">
+                            <label for="retentionBonus">Retention Bonus</label>
+                            <input type="number" id="retentionBonus" min="0" step="1000" placeholder="e.g., 300000">
+                        </div>
+                    </div>
+
+                    <!-- Special Payments -->
+                    <div class="section-card">
+                        <h3>Special Payments</h3>
+                        <div class="input-group">
+                            <label for="gratuity">Gratuity</label>
+                            <input type="number" id="gratuity" min="0" step="1000" placeholder="e.g., 1000000">
+                        </div>
+                        <div class="input-group">
+                            <label for="leaveEncashment">Leave Encashment</label>
+                            <input type="number" id="leaveEncashment" min="0" step="1000" placeholder="e.g., 200000">
+                        </div>
+                        <div class="input-group">
+                            <label for="severancePackage">Severance Package</label>
+                            <input type="number" id="severancePackage" min="0" step="1000" placeholder="e.g., 1500000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deductions Section (Old Regime) -->
+                <div class="deductions-section">
+                    <div class="section-card">
+                        <h3>Deductions & Exemptions (Old Regime)</h3>
+                        <!-- 80C Investments -->
+                        <div class="subsection">
+                            <h4>Section 80C (Max: ₹1,50,000)</h4>
+                            <div class="input-group">
+                                <label for="epf">EPF Contribution</label>
+                                <input type="number" id="epf" min="0" step="1000" placeholder="e.g., 72000">
+                            </div>
+                            <div class="input-group">
+                                <label for="ppf">PPF Investment</label>
+                                <input type="number" id="ppf" min="0" step="1000" placeholder="e.g., 50000">
+                            </div>
+                            <div class="input-group">
+                                <label for="elss">ELSS Investment</label>
+                                <input type="number" id="elss" min="0" step="1000" placeholder="e.g., 25000">
+                            </div>
+                        </div>
+
+                        <!-- Housing -->
+                        <div class="subsection">
+                            <h4>Housing Benefits</h4>
+                            <div class="input-group">
+                                <label for="homeLoanInterest">Home Loan Interest (Max: ₹2,00,000)</label>
+                                <input type="number" id="homeLoanInterest" min="0" step="1000" placeholder="e.g., 200000">
+                            </div>
+                            <div class="input-group">
+                                <label for="rentPaid">Rent Paid (for HRA)</label>
+                                <input type="number" id="rentPaid" min="0" step="1000" placeholder="e.g., 300000">
+                            </div>
+                            <div class="input-group">
+                                <label for="metroCity">Metro City</label>
+                                <select id="metroCity">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Other Deductions -->
+                        <div class="subsection">
+                            <h4>Other Deductions</h4>
+                            <div class="input-group">
+                                <label for="medicalInsurance">Medical Insurance (80D)</label>
+                                <input type="number" id="medicalInsurance" min="0" step="1000" placeholder="e.g., 25000">
+                            </div>
+                            <div class="input-group">
+                                <label for="nps">NPS Contribution (80CCD)</label>
+                                <input type="number" id="nps" min="0" step="1000" placeholder="e.g., 50000">
+                            </div>
+                            <div class="input-group">
+                                <label for="savingsInterest">Savings Account Interest (80TTA)</label>
+                                <input type="number" id="savingsInterest" min="0" step="100" placeholder="e.g., 10000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button onclick="calculateITR()" class="calculate-button primary">Calculate Tax</button>
+                    <button onclick="resetForm()" class="reset-button">Reset Form</button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="itrResult" class="result-section">
+                    <div class="tax-comparison">
+                        <!-- Old Regime Results -->
+                        <div class="regime-card old-regime">
+                            <h3>Old Tax Regime</h3>
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <label>Gross Total Income</label>
+                                    <span id="oldRegimeGross"></span>
+                                </div>
+                                <div class="result-item">
+                                    <label>Total Deductions</label>
+                                    <span id="oldRegimeDeductions"></span>
+                                </div>
+                                <div class="result-item">
+                                    <label>Taxable Income</label>
+                                    <span id="oldRegimeTaxable"></span>
+                                </div>
+                                <div class="result-item highlighted">
+                                    <label>Tax Liability</label>
+                                    <span id="oldRegimeTax"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Regime Results -->
+                        <div class="regime-card new-regime">
+                            <h3>New Tax Regime</h3>
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <label>Gross Total Income</label>
+                                    <span id="newRegimeGross"></span>
+                                </div>
+                                <div class="result-item">
+                                    <label>Standard Deduction</label>
+                                    <span id="newRegimeDeduction"></span>
+                                </div>
+                                <div class="result-item">
+                                    <label>Taxable Income</label>
+                                    <span id="newRegimeTaxable"></span>
+                                </div>
+                                <div class="result-item highlighted">
+                                    <label>Tax Liability</label>
+                                    <span id="newRegimeTax"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div class="recommendation-card">
+                        <h3>Tax Saving Recommendation</h3>
+                        <p id="regimeRecommendation"></p>
+                        <div id="savingsSuggestions"></div>
+                    </div>
+
+                    <!-- Visual Comparisons -->
+                    <div class="charts-section">
+                        <div class="chart-container">
+                            <canvas id="taxComparisonChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="incomeDistributionChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="deductionsUtilizationChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Breakdown -->
+                    <div class="detailed-breakdown">
+                        <h3>Detailed Tax Breakdown</h3>
+                        <div class="breakdown-tables">
+                            <table id="oldRegimeBreakdown">
+                                <thead>
+                                    <tr>
+                                        <th>Income Slab</th>
+                                        <th>Tax Rate</th>
+                                        <th>Tax Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <table id="newRegimeBreakdown">
+                                <thead>
+                                    <tr>
+                                        <th>Income Slab</th>
+                                        <th>Tax Rate</th>
+                                        <th>Tax Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="js/calculator.js"></script>

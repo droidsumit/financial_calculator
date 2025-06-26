@@ -1246,8 +1246,30 @@ function displayEMIResults(schedule, loanId, summary) {
         </div>
     `;
 
-    // Update results div
-    resultsDiv.innerHTML = summaryHTML;
+    // Find the result summary div within the results container
+    const summaryDiv = resultsDiv.querySelector('.result-summary');
+    if (summaryDiv) {
+        summaryDiv.innerHTML = summaryHTML;
+    }
+
+    // Populate amortization table
+    const amortizationTable = document.getElementById(`amortizationTable${chartSuffix}`);
+    if (amortizationTable) {
+        const tbody = amortizationTable.querySelector('tbody');
+        tbody.innerHTML = schedule.map(row => `
+            <tr>
+                <td>${row.month}</td>
+                <td>${formatCurrency(row.emi)}</td>
+                <td>${formatCurrency(row.principal)}</td>
+                <td>${formatCurrency(row.interest)}</td>
+                <td>${formatCurrency(row.totalInterest)}</td>
+                <td>${formatCurrency(row.balance)}</td>
+                <td>${formatCurrency(row.prepayment)}</td>
+            </tr>
+        `).join('');
+    }
+
+    // Show results container
     resultsDiv.style.display = 'block';
 
     // Update charts

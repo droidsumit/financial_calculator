@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Calculator</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 
 <body>
@@ -73,7 +73,7 @@
                         </div>
                     </div>
 
-                    <button onclick="calculateEMI('loan1')" class="calculate-button">Calculate Loan 1</button>
+                    <button class="calculate-button">Calculate Loan 1</button>
                 </div>
 
                 <div class="loan-form" id="loan2">
@@ -119,154 +119,36 @@
                             </div>
                         </div>
                     </div>
-                    <button onclick="calculateEMI('loan2')" class="calculate-button">Calculate Loan 2</button>
+                    <button class="calculate-button">Calculate Loan 2</button>
                 </div>
 
-                <div id="emiResult" class="result">
-                    <div class="summary-section">
-                        <h3>Summary</h3>
-                        <div class="summary-grid">
-                            <!-- Loan 1 Summary -->
-                            <div class="loan-summary" id="summary1">
-                                <h4>Loan 1 Summary</h4>
-                                <div class="summary-item">
-                                    <label>Monthly EMI</label>
-                                    <span id="monthlyEMI"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Interest (Without Prepayment)</label>
-                                    <span id="totalInterestWithout"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Interest (With Prepayment)</label>
-                                    <span id="totalInterest"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Payment</label>
-                                    <span id="totalPayment"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Interest Saved</label>
-                                    <span id="interestSaved"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Original Loan Period</label>
-                                    <span id="originalTerm"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>New Loan Period</label>
-                                    <span id="newTerm"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Time Saved</label>
-                                    <span id="timeSaved"></span>
-                                </div>
-                            </div>
-
-                            <!-- Loan 2 Summary -->
-                            <div class="loan-summary" id="summary2">
-                                <h4>Loan 2 Summary</h4>
-                                <div class="summary-item">
-                                    <label>Monthly EMI</label>
-                                    <span id="monthlyEMI2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Interest (Without Prepayment)</label>
-                                    <span id="totalInterestWithout2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Interest (With Prepayment)</label>
-                                    <span id="totalInterest2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Total Payment</label>
-                                    <span id="totalPayment2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Interest Saved</label>
-                                    <span id="interestSaved2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Original Loan Period</label>
-                                    <span id="originalTerm2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>New Loan Period</label>
-                                    <span id="newTerm2"></span>
-                                </div>
-                                <div class="summary-item">
-                                    <label>Time Saved</label>
-                                    <span id="timeSaved2"></span>
-                                </div>
-                            </div>
+                <!-- Results containers -->
+                <div id="loan1Results" class="loan-results">
+                    <h3>Loan 1 Results</h3>
+                    <div class="result-summary"></div>
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <h4>Payment Breakdown</h4>
+                            <canvas id="paymentBreakdown1"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h4>Outstanding Balance</h4>
+                            <canvas id="outstandingBalance1"></canvas>
                         </div>
                     </div>
+                </div>
 
-                    <div class="charts-section">
-                        <!-- Loan 1 Charts -->
-                        <div class="loan-charts" id="charts1">
-                            <h4>Loan 1 Charts</h4>
-                            <div class="chart">
-                                <canvas id="paymentBreakdown"></canvas>
-                            </div>
-                            <div class="chart">
-                                <canvas id="outstandingBalance"></canvas>
-                            </div>
+                <div id="loan2Results" class="loan-results" style="display: none;">
+                    <h3>Loan 2 Results</h3>
+                    <div class="result-summary"></div>
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <h4>Payment Breakdown</h4>
+                            <canvas id="paymentBreakdown2"></canvas>
                         </div>
-
-                        <!-- Loan 2 Charts -->
-                        <div class="loan-charts" id="charts2">
-                            <h4>Loan 2 Charts</h4>
-                            <div class="chart">
-                                <canvas id="paymentBreakdown2"></canvas>
-                            </div>
-                            <div class="chart">
-                                <canvas id="outstandingBalance2"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="amortization-tables">
-                        <!-- Loan 1 Table -->
-                        <div class="loan-table" id="table1">
-                            <h4>Loan 1 Amortization Schedule</h4>
-                            <div class="table-container">
-                                <table id="amortizationTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Month</th>
-                                            <th>EMI</th>
-                                            <th>Principal</th>
-                                            <th>Interest</th>
-                                            <th>Monthly Extra</th>
-                                            <th>Lumpsum</th>
-                                            <th>Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Loan 2 Table -->
-                        <div class="loan-table" id="table2">
-                            <h4>Loan 2 Amortization Schedule</h4>
-                            <div class="table-container">
-                                <table id="amortizationTable2">
-                                    <thead>
-                                        <tr>
-                                            <th>Month</th>
-                                            <th>EMI</th>
-                                            <th>Principal</th>
-                                            <th>Interest</th>
-                                            <th>Monthly Extra</th>
-                                            <th>Lumpsum</th>
-                                            <th>Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+                        <div class="chart-wrapper">
+                            <h4>Outstanding Balance</h4>
+                            <canvas id="outstandingBalance2"></canvas>
                         </div>
                     </div>
                 </div>
@@ -294,7 +176,7 @@
                 <label for="sipInflation">Expected Inflation Rate (%)</label>
                 <input type="number" id="sipInflation" min="0" step="0.1" placeholder="e.g., 6">
             </div>
-            <button onclick="calculateSIP()">Calculate SIP</button>
+            <button class="calculate-button" id="calculateSIPButton">Calculate SIP</button>
             <div id="sipResult" class="result"></div>
         </div>
 
@@ -320,8 +202,12 @@
                 <label for="swpInflation">Expected Inflation Rate (%)</label>
                 <input type="number" id="swpInflation" min="0" step="0.1" placeholder="e.g., 6">
             </div>
-            <button onclick="calculateSWP()">Calculate SWP</button>
-            <div id="swpResult" class="result"></div>
+            <button class="calculate-button" id="calculateSWPButton">Calculate SWP</button>
+            <div id="swpResult" class="result">
+                <div class="chart-wrapper">
+                    <canvas id="swpChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <div id="itr" class="calculator-section">

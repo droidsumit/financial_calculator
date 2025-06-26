@@ -30,17 +30,19 @@ h2 {
 
 .tabs {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
 }
 
 .tab-button {
-    padding: 1rem 2rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
     cursor: pointer;
-    font-size: 1rem;
+    border-radius: 4px;
     transition: all 0.3s ease;
     flex: 1;
     color: #2c3e50;
@@ -48,15 +50,13 @@ h2 {
 }
 
 .tab-button:hover {
-    background: #e9ecef;
-    border-color: #ced4da;
+    background-color: #e8e8e8;
 }
 
 .tab-button.active {
-    background: #3498db;
+    background-color: #4CAF50;
     color: white;
-    border-color: #3498db;
-    font-weight: 600;
+    border-color: #45a049;
 }
 
 .calculator-section {
@@ -71,7 +71,7 @@ h2 {
 }
 
 .calculator-section.active {
-    display: block;
+    display: block !important;
     opacity: 1;
 }
 
@@ -797,21 +797,40 @@ button:hover {
     color: #2c3e50;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .income-sections {
-        grid-template-columns: 1fr;
-    }
-    
-    .tax-comparison {
-        grid-template-columns: 1fr;
-    }
-    
-    .charts-section {
-        grid-template-columns: 1fr;
-    }
-    
-    .breakdown-tables {
-        grid-template-columns: 1fr;
-    }
+/* Financial Year Selection Styles */
+#itr .financial-year-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.financial-year-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+    cursor: pointer;
+    min-width: 250px;
+}
+
+.financial-year-section label {
+    font-weight: 600;
+    color: #333;
+}
+
+.financial-year-section p {
+    margin: 0;
+    color: #666;
+}
+
+.financial-year-section #selectedFY {
+    font-weight: 600;
+    color: #2196F3;
 }

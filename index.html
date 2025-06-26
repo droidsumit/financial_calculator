@@ -20,7 +20,7 @@
             <button class="tab-button" data-tab="itr">ITR Calculator</button>
         </div>
 
-        <div id="emi" class="calculator-section tab-content active">
+        <div id="emi" class="calculator-section active">
             <h2>EMI Calculator with Prepayment Options</h2>
             <div class="comparison-controls">
                 <label class="comparison-toggle">
@@ -272,7 +272,7 @@
                 </div>
             </div>
         </div>
-        <div id="sip" class="calculator-section tab-content">
+        <div id="sip" class="calculator-section">
             <h2>SIP Calculator</h2>
             <div class="input-group">
                 <label for="sipAmount">Monthly SIP Amount (₹)</label>
@@ -298,7 +298,7 @@
             <div id="sipResult" class="result"></div>
         </div>
 
-        <div id="swp" class="calculator-section tab-content">
+        <div id="swp" class="calculator-section">
             <h2>SWP Calculator</h2>
             <div class="input-group">
                 <label for="initialAmount">Initial Investment (₹)</label>
@@ -324,13 +324,22 @@
             <div id="swpResult" class="result"></div>
         </div>
 
-        <div id="itr" class="calculator-section tab-content">
+        <div id="itr" class="calculator-section">
             <h2>Income Tax Calculator (Old vs New Regime)</h2>
             <div class="comparison-controls">
                 <label class="comparison-toggle">
                     <input type="checkbox" id="enableDetailedMode" onchange="toggleDetailedMode()">
                     Enable Detailed Mode
                 </label>
+            </div>
+
+            <!-- Financial Year Selection -->
+            <div class="financial-year-section">
+                <label for="financialYear">Select Financial Year:</label>
+                <select id="financialYear" class="financial-year-select">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+                <p>Selected: <span id="selectedFY"></span></p>
             </div>
             
             <div class="tax-calculator-container">
@@ -579,6 +588,7 @@
             </div>
         </div>
     </div>
+    <script src="js/tabs.js"></script>
     <script src="js/calculator.js"></script>
 </body>
 

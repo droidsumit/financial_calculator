@@ -10,49 +10,163 @@ const charts = {
     }
 };
 
-// Tab switching functionality
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Document loaded, setting up tabs...');
-    
-    // Log initial tab state
-    const tabs = document.querySelectorAll('.tab-button');
-    console.log('Found tabs:', tabs.length);
-    tabs.forEach(tab => console.log('Tab:', tab.dataset.tab));
-    
-    // Log initial content state
-    const contents = document.querySelectorAll('.calculator-section');
-    console.log('Found calculator sections:', contents.length);
-    contents.forEach(content => {
-        console.log('Content:', content.id, 'Classes:', content.className);
+// Expose financial year dropdown population globally
+window.populateFinancialYearDropdown = function() {
+    console.log('Populating financial year dropdown...');
+    const dropdown = document.getElementById('financialYear');
+    if (!dropdown) {
+        console.error('Financial year dropdown element not found');
+        return;
+    }
+
+    // Clear existing options
+    dropdown.innerHTML = '';
+
+    // Add financial years (most recent first)
+    const years = [
+        { value: '2024-25', text: 'FY 2024-25 (AY 2025-26)' },
+        { value: '2023-24', text: 'FY 2023-24 (AY 2024-25)' },
+        { value: '2022-23', text: 'FY 2022-23 (AY 2023-24)' }
+    ];
+
+    years.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year.value;
+        option.textContent = year.text;
+        dropdown.appendChild(option);
     });
-    
+
+    console.log('Financial year dropdown populated successfully');
+    // Trigger tax calculation with the selected year
+    if (typeof calculateTax === 'function') {
+        calculateTax();
+    }
+};
+
+// Tab switching functionality
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab-button');
+    const sections = document.querySelectorAll('.calculator-section');
+
+    // Initially hide all sections except the first one
+    sections.forEach((section, index) => {
+        if (index === 0) {
+            section.classList.add('active');
+        } else {
+            section.classList.remove('active');
+        }
+    });
+
+    // Set up tab click handlers
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            try {
-                // Get the target content ID
-                const targetId = tab.dataset.tab;
-                console.log('Switching to tab:', targetId);
-                
-                // Remove active class from all tabs and contents
-                document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.calculator-section').forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                tab.classList.add('active');
-                const content = document.getElementById(targetId);
-                if (!content) {
-                    console.error('Could not find content for tab:', targetId);
-                    return;
-                }
-                content.classList.add('active');
-                console.log('Tab switch complete');
-            } catch (error) {
-                console.error('Error switching tabs:', error);
+            const targetId = tab.getAttribute('data-tab');
+            
+            // Update tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Update sections
+            sections.forEach(section => section.classList.remove('active'));
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
             }
         });
     });
+}
 
-    // Initialize prepayment lists for both loans
+// Initialize tab switching functionality
+function initTabSwitching() {
+    const tabs = document.querySelectorAll('.tab-button');
+    const calculatorSections = document.querySelectorAll('.calculator-section');
+    
+    function hideAllSections() {
+        calculatorSections.forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        });
+    }
+
+    function deactivateAllTabs() {
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+    }
+
+    function showSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'block';
+            section.classList.add('active');
+        }
+    }
+
+    // Initially hide all sections except the first one
+    hideAllSections();
+    if (calculatorSections.length > 0) {
+        calculatorSections[0].style.display = 'block';
+        calculatorSections[0].classList.add('active');
+    }
+
+    // Set first tab as active
+    if (tabs.length > 0) {
+        tabs[0].classList.add('active');
+    }
+
+    // Add click handlers to tabs
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.dataset.tab;
+            console.log('Tab clicked:', targetId);
+            
+            deactivateAllTabs();
+            hideAllSections();
+            
+            this.classList.add('active');
+            showSection(targetId);
+        });
+    });
+}
+
+// Document ready handler
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Document loaded, initializing tabs...');
+    initTabSwitching();
+    
+    // Tab switching functionality
+    // Set up tab click handlers
+    document.querySelectorAll('.tab-button').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-tab');
+            
+            // Hide all calculator sections
+            document.querySelectorAll('.calculator-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected calculator section
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update tab states
+            document.querySelectorAll('.tab-button').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+
+    // Initialize default tab (EMI Calculator)
+    const defaultTab = document.querySelector('.tab-button[data-tab="emi"]');
+    if (defaultTab) {
+        defaultTab.click();
+    }
+
+    // Initialize prepayment lists
     ['prepaymentList', 'prepaymentList2'].forEach(listId => {
         const prepaymentList = document.getElementById(listId);
         if (prepaymentList) {
@@ -61,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
 function createNewRow(isLastRow = false, listId = 'prepaymentList') {
     const row = document.createElement('div');
     row.className = 'prepayment-row';
@@ -577,166 +690,172 @@ function calculateSWP() {
     console.log('SWP calculation complete');
 }
 
-// Tax Regime Constants
-const OLD_REGIME_SLABS = [
-    { limit: 250000, rate: 0 },
-    { limit: 500000, rate: 5 },
-    { limit: 750000, rate: 10 },
-    { limit: 1000000, rate: 15 },
-    { limit: 1250000, rate: 20 },
-    { limit: 1500000, rate: 25 },
-    { limit: Infinity, rate: 30 }
-];
+// Financial Year Constants
+const TAX_SLABS = {
+    'FY2024-2025_AY2025-2026': {
+        old: [
+            { limit: 250000, rate: 0 },
+            { limit: 500000, rate: 5 },
+            { limit: 1000000, rate: 20 },
+            { limit: 5000000, rate: 30 },
+            { limit: 10000000, rate: 30 },
+            { limit: 20000000, rate: 30 },
+            { limit: 50000000, rate: 30 },
+            { limit: Infinity, rate: 30 }
+        ],
+        new: [
+            { limit: 300000, rate: 0 },
+            { limit: 700000, rate: 5 },
+            { limit: 1000000, rate: 10 },
+            { limit: 1200000, rate: 15 },
+            { limit: 1500000, rate: 20 },
+            { limit: 5000000, rate: 30 },
+            { limit: 10000000, rate: 30 },
+            { limit: 20000000, rate: 30 },
+            { limit: 50000000, rate: 30 },
+            { limit: Infinity, rate: 30 }
+        ]
+    },
+    'FY2023-2024_AY2024-2025': {
+        old: [
+            { limit: 250000, rate: 0 },
+            { limit: 500000, rate: 5 },
+            { limit: 1000000, rate: 20 },
+            { limit: Infinity, rate: 30 }
+        ],
+        new: [
+            { limit: 300000, rate: 0 },
+            { limit: 600000, rate: 5 },
+            { limit: 900000, rate: 10 },
+            { limit: 1200000, rate: 15 },
+            { limit: 1500000, rate: 20 },
+            { limit: Infinity, rate: 30 }
+        ]
+    },
+    'FY2022-2023_AY2023-2024': {
+        old: [
+            { limit: 250000, rate: 0 },
+            { limit: 500000, rate: 5 },
+            { limit: 1000000, rate: 20 },
+            { limit: Infinity, rate: 30 }
+        ],
+        new: [
+            { limit: 300000, rate: 0 },
+            { limit: 600000, rate: 5 },
+            { limit: 900000, rate: 10 },
+            { limit: 1200000, rate: 15 },
+            { limit: 1500000, rate: 20 },
+            { limit: Infinity, rate: 30 }
+        ]
+    }
+};
 
-const NEW_REGIME_SLABS = [
-    { limit: 300000, rate: 0 },
-    { limit: 600000, rate: 5 },
-    { limit: 900000, rate: 10 },
-    { limit: 1200000, rate: 15 },
-    { limit: 1500000, rate: 20 },
-    { limit: Infinity, rate: 30 }
-];
+// Function to get current financial year
+function getCurrentFinancialYear() {
+    const today = new Date();
+    const month = today.getMonth(); // 0-11
+    const year = today.getFullYear();
+    
+    // If month is January to March (0-2), we're in the previous financial year
+    const fyStartYear = month <= 2 ? year - 1 : year;
+    const fyEndYear = fyStartYear + 1;
+    const ayYear = fyEndYear + 1;
+    
+    return `FY${fyStartYear}-${fyEndYear}_AY${fyEndYear}-${ayYear}`;
+}
 
-// ITR Calculator Functions
-function toggleDetailedMode() {
-    const detailedMode = document.getElementById('enableDetailedMode').checked;
-    document.querySelectorAll('.section-card').forEach(section => {
-        if (section.classList.contains('detailed-only')) {
-            section.style.display = detailedMode ? 'block' : 'none';
-        }
+// Function to populate financial year dropdown
+function populateFinancialYearDropdown() {
+    console.log('Attempting to populate financial year dropdown...');
+    
+    const select = document.getElementById('financialYear');
+    if (!select) {
+        console.error('Financial year dropdown not found in DOM');
+        return;
+    }
+
+    // Clear existing options
+    console.log('Clearing existing options...');
+    select.innerHTML = '';
+    
+    // Add options from TAX_SLABS
+    console.log('Available financial years:', Object.keys(TAX_SLABS));
+    Object.keys(TAX_SLABS).forEach(fy => {
+        const option = document.createElement('option');
+        option.value = fy;
+        option.textContent = fy.replace('_', ' ');
+        select.appendChild(option);
+        console.log('Added option:', fy);
     });
+    
+    // Set current financial year as default
+    const currentFY = getCurrentFinancialYear();
+    console.log('Setting current financial year:', currentFY);
+    select.value = currentFY;
+    
+    // Trigger change event
+    select.dispatchEvent(new Event('change'));
 }
 
-function calculateITR() {
-    // Gather Income Data
-    const income = {
-        regular: {
-            basic: getInputValue('basicSalary'),
-            hra: getInputValue('hra'),
-            special: getInputValue('specialAllowance'),
-            lta: getInputValue('lta'),
-            food: getInputValue('foodAllowance')
-        },
-        stocks: {
-            rsu: getInputValue('rsuIncome'),
-            espp: getInputValue('esppIncome'),
-            esop: getInputValue('esopBenefit')
-        },
-        variable: {
-            performance: getInputValue('performanceBonus'),
-            joining: getInputValue('joiningBonus'),
-            retention: getInputValue('retentionBonus')
-        },
-        special: {
-            gratuity: getInputValue('gratuity'),
-            leave: getInputValue('leaveEncashment'),
-            severance: getInputValue('severancePackage')
+// Function to get current tax slabs based on selected financial year
+function getCurrentTaxSlabs() {
+    const selectedFY = document.getElementById('financialYear').value;
+    return TAX_SLABS[selectedFY] || TAX_SLABS[getCurrentFinancialYear()];
+}
+
+// Function to calculate surcharge based on income level
+function calculateSurcharge(income, tax, regime) {
+    let surcharge = 0;
+    
+    if (regime === 'old') {
+        if (income > 50000000) {
+            surcharge = tax * 0.37; // 37% surcharge
+        } else if (income > 20000000) {
+            surcharge = tax * 0.25; // 25% surcharge
+        } else if (income > 10000000) {
+            surcharge = tax * 0.15; // 15% surcharge
+        } else if (income > 5000000) {
+            surcharge = tax * 0.10; // 10% surcharge
         }
-    };
-
-    // Calculate Deductions (Old Regime)
-    const deductions = calculateDeductions();
-    
-    // Calculate Tax for Both Regimes
-    const oldRegimeTax = calculateOldRegimeTax(income, deductions);
-    const newRegimeTax = calculateNewRegimeTax(income);
-    
-    // Display Results
-    displayTaxResults(income, deductions, oldRegimeTax, newRegimeTax);
-    
-    // Update Charts
-    updateTaxCharts(income, deductions, oldRegimeTax, newRegimeTax);
-    
-    // Show Tax Saving Recommendations
-    showTaxRecommendations(oldRegimeTax, newRegimeTax, deductions);
-}
-
-function calculateDeductions() {
-    const deductions = {
-        section80C: {
-            epf: getInputValue('epf'),
-            ppf: getInputValue('ppf'),
-            elss: getInputValue('elss')
-        },
-        housing: {
-            interest: getInputValue('homeLoanInterest'),
-            rentPaid: getInputValue('rentPaid'),
-            isMetro: document.getElementById('metroCity').value === 'yes'
-        },
-        other: {
-            medical: getInputValue('medicalInsurance'),
-            nps: getInputValue('nps'),
-            savings: getInputValue('savingsInterest')
+    } else { // new regime
+        if (income > 20000000) {
+            surcharge = tax * 0.25; // 25% surcharge
+        } else if (income > 10000000) {
+            surcharge = tax * 0.15; // 15% surcharge
+        } else if (income > 5000000) {
+            surcharge = tax * 0.10; // 10% surcharge
         }
-    };
+    }
 
-    // Calculate total 80C (max 1.5L)
-    deductions.total80C = Math.min(150000, 
-        deductions.section80C.epf + 
-        deductions.section80C.ppf + 
-        deductions.section80C.elss
-    );
+    // Marginal Relief calculation
+    const incomeThreshold = regime === 'old' ? 
+        (income > 50000000 ? 50000000 : 
+         income > 20000000 ? 20000000 :
+         income > 10000000 ? 10000000 : 5000000) :
+        (income > 20000000 ? 20000000 :
+         income > 10000000 ? 10000000 : 5000000);
 
-    // Calculate HRA exemption
-    deductions.hraExemption = calculateHRAExemption(
-        getInputValue('basicSalary'),
-        getInputValue('hra'),
-        deductions.housing.rentPaid,
-        deductions.housing.isMetro
-    );
+    const excessIncome = income - incomeThreshold;
+    if (excessIncome < surcharge) {
+        surcharge = Math.min(surcharge, excessIncome);
+    }
 
-    // Calculate other deductions
-    deductions.totalOther = 
-        Math.min(25000, deductions.other.medical) +  // 80D limit
-        Math.min(50000, deductions.other.nps) +      // 80CCD(1B) limit
-        Math.min(10000, deductions.other.savings);   // 80TTA limit
-
-    // Total deductions
-    deductions.total = deductions.total80C + 
-                      deductions.hraExemption +
-                      Math.min(200000, deductions.housing.interest) + // Home loan interest limit
-                      deductions.totalOther;
-
-    return deductions;
+    return surcharge;
 }
 
-function calculateHRAExemption(basicSalary, hraReceived, rentPaid, isMetro) {
-    const exemption = Math.min(
-        hraReceived,
-        rentPaid - (0.1 * basicSalary),
-        isMetro ? (0.5 * basicSalary) : (0.4 * basicSalary)
-    );
-    return Math.max(0, exemption);
-}
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize financial year dropdown if we're on the ITR tab
+    const itrSection = document.getElementById('itr');
+    if (itrSection && itrSection.classList.contains('active')) {
+        console.log('Page loaded with ITR tab active, initializing dropdown...');
+        populateFinancialYearDropdown();
+    }
+});
 
-function calculateOldRegimeTax(income, deductions) {
-    // Calculate total income
-    const totalIncome = calculateTotalIncome(income);
-    
-    // Calculate taxable income after deductions
-    const taxableIncome = Math.max(0, totalIncome - deductions.total);
-    
-    // Calculate tax based on slabs
-    return calculateTaxOnIncome(taxableIncome, OLD_REGIME_SLABS);
-}
-
-function calculateNewRegimeTax(income) {
-    // Calculate total income
-    const totalIncome = calculateTotalIncome(income);
-    
-    // Standard deduction of 50,000 in new regime
-    const taxableIncome = Math.max(0, totalIncome - 50000);
-    
-    // Calculate tax based on new regime slabs
-    return calculateTaxOnIncome(taxableIncome, NEW_REGIME_SLABS);
-}
-
-function calculateTotalIncome(income) {
-    return Object.values(income).reduce((total, category) => 
-        total + Object.values(category).reduce((sum, value) => sum + value, 0), 0);
-}
-
-function calculateTaxOnIncome(income, slabs) {
+// Modified tax calculation function
+function calculateTaxOnIncome(income, regime) {
+    const slabs = getCurrentTaxSlabs()[regime];
     let remainingIncome = income;
     let totalTax = 0;
     let previousLimit = 0;
@@ -750,110 +869,149 @@ function calculateTaxOnIncome(income, slabs) {
         previousLimit = slab.limit;
     }
 
-    // Add surcharge if applicable
-    if (income > 5000000) {
-        const surchargeRate = income > 10000000 ? 0.15 : 0.10;
-        totalTax += totalTax * surchargeRate;
-    }
-
-    // Add 4% cess
-    totalTax += totalTax * 0.04;
-
     return totalTax;
 }
 
-function displayTaxResults(income, deductions, oldTax, newTax) {
+// Function to calculate tax under old regime
+function calculateOldRegimeTax(income, deductions) {
+    const selectedYear = document.getElementById('financialYear').value;
     const totalIncome = calculateTotalIncome(income);
-
-    // Update Old Regime Results
-    document.getElementById('oldRegimeGross').textContent = formatCurrency(totalIncome);
-    document.getElementById('oldRegimeDeductions').textContent = formatCurrency(deductions.total);
-    document.getElementById('oldRegimeTaxable').textContent = formatCurrency(totalIncome - deductions.total);
-    document.getElementById('oldRegimeTax').textContent = formatCurrency(oldTax);
-
-    // Update New Regime Results
-    document.getElementById('newRegimeGross').textContent = formatCurrency(totalIncome);
-    document.getElementById('newRegimeDeduction').textContent = formatCurrency(50000);
-    document.getElementById('newRegimeTaxable').textContent = formatCurrency(totalIncome - 50000);
-    document.getElementById('newRegimeTax').textContent = formatCurrency(newTax);
-
-    // Show Recommendation
-    const recommendation = document.getElementById('regimeRecommendation');
-    if (oldTax < newTax) {
-        recommendation.innerHTML = `<strong>Recommendation:</strong> Choose Old Tax Regime and save ${formatCurrency(newTax - oldTax)} annually`;
-    } else {
-        recommendation.innerHTML = `<strong>Recommendation:</strong> Choose New Tax Regime and save ${formatCurrency(oldTax - newTax)} annually`;
+    const taxableIncome = Math.max(0, totalIncome - deductions.total);
+    
+    let tax = calculateTaxOnIncome(taxableIncome, 'old');
+    
+    // Apply section 87A rebate for old regime (₹5L limit)
+    if (taxableIncome <= 500000) {
+        tax = Math.max(0, tax - 12500);
     }
-
-    // Show Tax Saving Suggestions
-    showTaxSavingSuggestions(income, deductions, oldTax, newTax);
+    
+    // Calculate surcharge and cess
+    const surcharge = calculateSurcharge(taxableIncome, tax, 'old');
+    const totalTaxWithSurcharge = tax + surcharge;
+    const cess = totalTaxWithSurcharge * 0.04;
+    
+    displayDetailedTaxBreakdown('old', income, taxableIncome, deductions);
+    
+    return {
+        taxableIncome,
+        baseTax: tax,
+        surcharge,
+        cess,
+        totalTax: totalTaxWithSurcharge + cess
+    };
 }
 
-function updateTaxCharts(income, deductions, oldTax, newTax) {
-    // Tax Comparison Chart
-    const taxCompCtx = document.getElementById('taxComparisonChart').getContext('2d');
-    new Chart(taxCompCtx, {
+// Function to calculate tax under new regime
+function calculateNewRegimeTax(income) {
+    const selectedYear = document.getElementById('financialYear').value;
+    const totalIncome = calculateTotalIncome(income);
+    // New regime doesn't allow most deductions
+    const taxableIncome = totalIncome;
+    
+    let tax = calculateTaxOnIncome(taxableIncome, 'new');
+    
+    // Apply section 87A rebate for new regime (₹7L limit)
+    if (taxableIncome <= 700000) {
+        tax = Math.max(0, tax - 25000);
+    }
+    
+    // Calculate surcharge and cess
+    const surcharge = calculateSurcharge(taxableIncome, tax, 'new');
+    const totalTaxWithSurcharge = tax + surcharge;
+    const cess = totalTaxWithSurcharge * 0.04;
+    
+    displayDetailedTaxBreakdown('new', income, taxableIncome);
+    
+    return {
+        taxableIncome,
+        baseTax: tax,
+        surcharge,
+        cess,
+        totalTax: totalTaxWithSurcharge + cess
+    };
+}
+
+// Function to display tax results
+function displayTaxResults(income, deductions, oldTax, newTax) {
+    const totalIncome = calculateTotalIncome(income);
+    
+    // Update summary section
+    document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+    document.getElementById('totalDeductions').textContent = formatCurrency(deductions.total);
+    document.getElementById('oldRegimeTax').textContent = formatCurrency(oldTax.totalTax);
+    document.getElementById('newRegimeTax').textContent = formatCurrency(newTax.totalTax);
+    
+    // Show recommendation
+    const recommendationEl = document.getElementById('taxRecommendation');
+    if (oldTax.totalTax < newTax.totalTax) {
+        recommendationEl.textContent = `Old regime is better for you. You save ${formatCurrency(newTax.totalTax - oldTax.totalTax)}`;
+        recommendationEl.className = 'recommendation old';
+    } else {
+        recommendationEl.textContent = `New regime is better for you. You save ${formatCurrency(oldTax.totalTax - newTax.totalTax)}`;
+        recommendationEl.className = 'recommendation new';
+    }
+    
+    // Show tax saving suggestions
+    showTaxSavingSuggestions(income, deductions, oldTax, newTax);
+    
+    // Update the tax breakdown visualization
+    updateTaxVisualization(oldTax, newTax);
+}
+
+// Function to update the tax visualization chart
+function updateTaxVisualization(oldTax, newTax) {
+    const ctx = document.getElementById('taxComparisonChart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (window.taxComparisonChart) {
+        window.taxComparisonChart.destroy();
+    }
+    
+    // Create new chart
+    window.taxComparisonChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Old Regime', 'New Regime'],
-            datasets: [{
-                label: 'Tax Liability',
-                data: [oldTax, newTax],
-                backgroundColor: ['#6052FF', '#4CAF50'],
-                borderColor: ['#4A3ECC', '#388E3C'],
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Base Tax',
+                    data: [oldTax.baseTax, newTax.baseTax],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                },
+                {
+                    label: 'Surcharge',
+                    data: [oldTax.surcharge, newTax.surcharge],
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                },
+                {
+                    label: 'Cess',
+                    data: [oldTax.cess, newTax.cess],
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                }
+            ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Tax Liability Comparison'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Tax: ' + formatCurrency(context.raw);
-                        }
+            scales: {
+                x: { stacked: true },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Amount (₹)'
                     }
                 }
-            }
-        }
-    });
-
-    // Income Distribution Chart
-    const totalIncome = calculateTotalIncome(income);
-    const incomeDistCtx = document.getElementById('incomeDistributionChart').getContext('2d');
-    new Chart(incomeDistCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Regular Salary', 'Stock Benefits', 'Variable Pay', 'Special Payments'],
-            datasets: [{
-                data: [
-                    Object.values(income.regular).reduce((a, b) => a + b, 0),
-                    Object.values(income.stocks).reduce((a, b) => a + b, 0),
-                    Object.values(income.variable).reduce((a, b) => a + b, 0),
-                    Object.values(income.special).reduce((a, b) => a + b, 0)
-                ],
-                backgroundColor: ['#6052FF', '#FF6B6B', '#4CAF50', '#FFA726']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            },
             plugins: {
                 title: {
                     display: true,
-                    text: 'Income Distribution'
+                    text: 'Tax Breakdown Comparison'
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const value = context.raw;
-                            const percentage = ((value / totalIncome) * 100).toFixed(1);
-                            return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                            return `${context.dataset.label}: ₹${formatCurrency(context.raw)}`;
                         }
                     }
                 }
@@ -862,53 +1020,18 @@ function updateTaxCharts(income, deductions, oldTax, newTax) {
     });
 }
 
-function showTaxSavingSuggestions(income, deductions, oldTax, newTax) {
-    const suggestions = document.getElementById('savingsSuggestions');
-    let suggestionText = '<h4>Tax Saving Opportunities:</h4><ul>';
-
-    // Check 80C utilization
-    const remaining80C = 150000 - deductions.total80C;
-    if (remaining80C > 0) {
-        suggestionText += `<li>Invest ₹${remaining80C.toLocaleString()} more in 80C options (ELSS, PPF, etc.)</li>`;
-    }
-
-    // Check NPS utilization
-    const remainingNPS = 50000 - deductions.other.nps;
-    if (remainingNPS > 0) {
-        suggestionText += `<li>Consider investing in NPS to save additional tax (up to ₹${remainingNPS.toLocaleString()})</li>`;
-    }
-
-    // Home loan suggestions
-    if (deductions.housing.interest === 0) {
-        suggestionText += '<li>Consider home loan benefits under Section 24 and 80EEA</li>';
-    }
-
-    // Medical insurance
-    if (deductions.other.medical < 25000) {
-        suggestionText += '<li>Buy medical insurance to claim deduction under Section 80D</li>';
-    }
-
-    suggestionText += '</ul>';
-    suggestions.innerHTML = suggestionText;
-}
-
-function resetForm() {
-    // Reset all input fields
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-        input.value = '';
-    });
+// Initialize ITR calculator functionality on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize financial year dropdown
+    populateFinancialYearDropdown();
     
-    // Reset select fields
-    document.getElementById('metroCity').value = 'no';
-    
-    // Reset results
-    document.getElementById('itrResult').style.display = 'none';
-    
-    // Reset detailed mode
-    document.getElementById('enableDetailedMode').checked = false;
-    toggleDetailedMode();
-}
-
-function getInputValue(id) {
-    return parseFloat(document.getElementById(id).value) || 0;
-}
+    // Add change listener for financial year
+    const fySelect = document.getElementById('financialYear');
+    if (fySelect) {
+        fySelect.addEventListener('change', function() {
+            if (document.getElementById('itrResult').style.display !== 'none') {
+                calculateITR(); // Recalculate if results are already showing
+            }
+        });
+    }
+});

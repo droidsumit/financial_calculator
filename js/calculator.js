@@ -143,6 +143,13 @@ window.populateFinancialYearDropdown = function() {
     if (selectedFYDisplay) {
         selectedFYDisplay.textContent = select.value.replace('_', ' ');
     }
+
+    // Add change handler to keep display in sync
+    select.addEventListener('change', () => {
+        if (selectedFYDisplay) {
+            selectedFYDisplay.textContent = select.value.replace('_', ' ');
+        }
+    });
     
     console.log('Financial year dropdown populated successfully');
 };
@@ -216,13 +223,17 @@ function initializeITRCalculator() {
     // Initialize financial year dropdown
     window.populateFinancialYearDropdown();
 
-    // Set up financial year dropdown change handler
+    // Remove any existing event listeners by cloning and replacing elements
     const fySelect = document.getElementById('financialYear');
     if (fySelect) {
-        console.log('Setting up financial year dropdown...');
-        fySelect.addEventListener('change', () => {
-            if (document.getElementById('itrResult')) {
-                calculateITR();
+        const newFySelect = fySelect.cloneNode(true);
+        fySelect.parentNode.replaceChild(newFySelect, fySelect);
+        
+        // Set up new change handler
+        newFySelect.addEventListener('change', (e) => {
+            const selectedFYDisplay = document.getElementById('selectedFY');
+            if (selectedFYDisplay) {
+                selectedFYDisplay.textContent = e.target.value.replace('_', ' ');
             }
         });
     }
@@ -230,8 +241,12 @@ function initializeITRCalculator() {
     // Set up calculate ITR button
     const calculateITRButton = document.getElementById('calculateITR');
     if (calculateITRButton) {
-        calculateITRButton.addEventListener('click', (e) => {
+        const newCalculateButton = calculateITRButton.cloneNode(true);
+        calculateITRButton.parentNode.replaceChild(newCalculateButton, calculateITRButton);
+        
+        newCalculateButton.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('Calculate button clicked');
             calculateITR();
         });
         console.log('ITR calculator button initialized');
@@ -240,14 +255,20 @@ function initializeITRCalculator() {
     // Set up reset ITR button
     const resetITRButton = document.getElementById('resetITR');
     if (resetITRButton) {
-        resetITRButton.addEventListener('click', resetITRForm);
+        const newResetButton = resetITRButton.cloneNode(true);
+        resetITRButton.parentNode.replaceChild(newResetButton, resetITRButton);
+        
+        newResetButton.addEventListener('click', resetITRForm);
         console.log('ITR reset button initialized');
     }
 
     // Set up detailed mode toggle button
     const toggleButton = document.getElementById('enableDetailedMode');
     if (toggleButton) {
-        toggleButton.addEventListener('change', toggleDetailedMode);
+        const newToggleButton = toggleButton.cloneNode(true);
+        toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
+        
+        newToggleButton.addEventListener('change', toggleDetailedMode);
         console.log('Detailed mode toggle button initialized');
     }
 }
@@ -392,31 +413,53 @@ function displayTaxResults(income, deductions, oldRegimeTax, newRegimeTax) {
     document.getElementById('newRegimeTaxable').textContent = formatCurrency(newRegimeTax.taxableIncome);
     document.getElementById('newRegimeTax').textContent = formatCurrency(newRegimeTax.totalTax);
 
+    // Function to create slab-wise breakdown
+    function createSlabBreakdown(taxableIncome, slabs) {
+        let table = `
+            <thead>
+                <tr>
+                    <th>Income Slab</th>
+                    <th>Tax Rate</th>
+                    <th>Tax Amount</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        let previousLimit = 0;
+        let totalTax = 0;
+
+        for (const slab of slabs) {
+            const slabIncome = Math.min(Math.max(0, taxableIncome - previousLimit), slab.limit - previousLimit);
+            if (slabIncome <= 0) break;
+
+            const slabTax = (slabIncome * slab.rate) / 100;
+            totalTax += slabTax;
+
+            table += `
+                <tr>
+                    <td>${formatCurrency(previousLimit)} to ${slab.limit === Infinity ? '∞' : formatCurrency(slab.limit)}</td>
+                    <td>${slab.rate}%</td>
+                    <td>${formatCurrency(slabTax)}</td>
+                </tr>`;
+
+            previousLimit = slab.limit;
+        }
+
+        table += `</tbody>`;
+        return table;
+    }
+
     // Display old regime breakdown
-    oldRegimeBreakdown.innerHTML = `
-        <thead>
-            <tr>
-                <th>Income Slab</th>
-                <th>Tax Rate</th>
-                <th>Tax Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    `;
+    const oldSlabs = getCurrentTaxSlabs()?.old;
+    if (oldSlabs) {
+        oldRegimeBreakdown.innerHTML = createSlabBreakdown(oldRegimeTax.taxableIncome, oldSlabs);
+    }
 
     // Display new regime breakdown
-    newRegimeBreakdown.innerHTML = `
-        <thead>
-            <tr>
-                <th>Income Slab</th>
-                <th>Tax Rate</th>
-                <th>Tax Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    `;
+    const newSlabs = getCurrentTaxSlabs()?.new;
+    if (newSlabs) {
+        newRegimeBreakdown.innerHTML = createSlabBreakdown(newRegimeTax.taxableIncome, newSlabs);
+    }
 
     // Show regime recommendation
     const taxDiff = oldRegimeTax.totalTax - newRegimeTax.totalTax;

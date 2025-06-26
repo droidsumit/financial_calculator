@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide all sections and deactivate tabs
         sections.forEach(section => {
             section.classList.remove('active');
+            section.style.display = 'none';
         });
         tabs.forEach(tab => {
             tab.classList.remove('active');
@@ -19,12 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetSection = document.getElementById(targetId);
         if (targetSection) {
             targetSection.classList.add('active');
+            targetSection.style.display = 'block';
             e.target.classList.add('active');
 
             // Initialize ITR calculator when switching to ITR tab
-            if (targetId === 'itr' && window.populateFinancialYearDropdown) {
+            if (targetId === 'itr') {
                 console.log('Initializing ITR calculator on tab switch...');
-                window.populateFinancialYearDropdown();
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                    if (typeof initializeITRCalculator === 'function') {
+                        initializeITRCalculator();
+                    } else if (window.populateFinancialYearDropdown) {
+                        window.populateFinancialYearDropdown();
+                    }
+                }, 0);
             }
         }
     }

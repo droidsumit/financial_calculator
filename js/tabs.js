@@ -1,52 +1,42 @@
 // Tab switching functionality
-function switchTab(targetId) {
+document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('.tab-button');
     const sections = document.querySelectorAll('.calculator-section');
 
-    // Hide all sections
-    sections.forEach(section => {
-        section.style.display = 'none';
-        section.classList.remove('active');
-    });
+    function switchTab(e) {
+        e.preventDefault();
+        const targetId = e.target.dataset.tab;
 
-    // Deactivate all tabs
-    tabs.forEach(tab => {
-        tab.classList.remove('active');
-    });
+        // Hide all sections and deactivate tabs
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
 
-    // Show target section and activate tab
-    const targetSection = document.getElementById(targetId);
-    const targetTab = document.querySelector(`[data-tab="${targetId}"]`);
+        // Show target section and activate tab
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            e.target.classList.add('active');
 
-    if (targetSection && targetTab) {
-        targetSection.style.display = 'block';
-        targetSection.classList.add('active');
-        targetTab.classList.add('active');
-
-        // Initialize ITR calculator when switching to ITR tab
-        if (targetId === 'itr' && window.populateFinancialYearDropdown) {
-            console.log('Initializing ITR calculator on tab switch...');
-            window.populateFinancialYearDropdown();
+            // Initialize ITR calculator when switching to ITR tab
+            if (targetId === 'itr' && window.populateFinancialYearDropdown) {
+                console.log('Initializing ITR calculator on tab switch...');
+                window.populateFinancialYearDropdown();
+            }
         }
     }
-}
-
-// Expose switchTab globally
-window.switchTab = switchTab;
-
-// Initialize tabs on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const tabs = document.querySelectorAll('.tab-button');
 
     // Add click handlers to tabs
     tabs.forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('data-tab');
-            switchTab(targetId);
-        });
+        tab.addEventListener('click', switchTab);
     });
 
     // Show default tab (EMI calculator)
-    switchTab('emi');
+    const defaultTab = document.querySelector('[data-tab="emi"]');
+    if (defaultTab) {
+        defaultTab.click();
+    }
 });

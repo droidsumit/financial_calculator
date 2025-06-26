@@ -426,53 +426,66 @@
                 <div class="deductions-section">
                     <div class="section-card">
                         <h3>Deductions & Exemptions (Old Regime)</h3>
-                        <!-- 80C Investments -->
-                        <div class="subsection">
-                            <h4>Section 80C (Max: ₹1,50,000)</h4>
-                            <div class="input-group">
-                                <label for="epf">EPF Contribution</label>
-                                <input type="number" id="epf" min="0" step="1000" placeholder="e.g., 72000">
+                        <div class="deductions-grid">
+                            <!-- Section 80C -->
+                            <div class="deduction-group">
+                                <h4>Section 80C (Max: ₹1,50,000)</h4>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label for="epf">EPF Contribution</label>
+                                        <input type="number" id="epf" min="0" step="1000" placeholder="e.g., 72000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="ppf">PPF Investment</label>
+                                        <input type="number" id="ppf" min="0" step="1000" placeholder="e.g., 50000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="elss">ELSS Investment</label>
+                                        <input type="number" id="elss" min="0" step="1000" placeholder="e.g., 25000">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <label for="ppf">PPF Investment</label>
-                                <input type="number" id="ppf" min="0" step="1000" placeholder="e.g., 50000">
+                            
+                            <!-- Housing Benefits -->
+                            <div class="deduction-group">
+                                <h4>Housing Benefits</h4>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label for="homeLoanInterest">Home Loan Interest</label>
+                                        <input type="number" id="homeLoanInterest" min="0" step="1000" placeholder="Max: ₹2,00,000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="rentPaid">Rent Paid (HRA)</label>
+                                        <input type="number" id="rentPaid" min="0" step="1000" placeholder="e.g., 300000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="metroCity">Metro City</label>
+                                        <select id="metroCity">
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <label for="elss">ELSS Investment</label>
-                                <input type="number" id="elss" min="0" step="1000" placeholder="e.g., 25000">
-                            </div>
-                        </div>
 
-                        <!-- Housing -->
-                        <div class="subsection">
-                            <h4>Housing Benefits</h4>
-                            <div class="input-group">
-                                <label for="homeLoanInterest">Home Loan Interest (Max: ₹2,00,000)</label>
-                                <input type="number" id="homeLoanInterest" min="0" step="1000" placeholder="e.g., 200000">
+                            <!-- Other Deductions -->
+                            <div class="deduction-group">
+                                <h4>Additional Deductions</h4>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label for="medicalInsurance">Medical Insurance (80D)</label>
+                                        <input type="number" id="medicalInsurance" min="0" step="1000" placeholder="e.g., 25000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="nps">NPS Contribution (80CCD)</label>
+                                        <input type="number" id="nps" min="0" step="1000" placeholder="e.g., 50000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>&nbsp;</label>
+                                        <div class="placeholder-input"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <label for="rentPaid">Rent Paid (for HRA)</label>
-                                <input type="number" id="rentPaid" min="0" step="1000" placeholder="e.g., 300000">
-                            </div>
-                            <div class="input-group">
-                                <label for="metroCity">Metro City</label>
-                                <select id="metroCity">
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Other Deductions -->
-                        <div class="subsection">
-                            <h4>Other Deductions</h4>
-                            <div class="input-group">
-                                <label for="medicalInsurance">Medical Insurance (80D)</label>
-                                <input type="number" id="medicalInsurance" min="0" step="1000" placeholder="e.g., 25000">
-                            </div>
-                            <div class="input-group">
-                                <label for="nps">NPS Contribution (80CCD)</label>
-                                <input type="number" id="nps" min="0" step="1000" placeholder="e.g., 50000">
                             </div>
                             <div class="input-group">
                                 <label for="savingsInterest">Savings Account Interest (80TTA)</label>
@@ -484,8 +497,8 @@
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button onclick="calculateITR()" class="calculate-button primary">Calculate Tax</button>
-                    <button onclick="resetForm()" class="reset-button">Reset Form</button>
+                    <button id="calculateITR" class="calculate-button primary">Calculate Tax</button>
+                    <button id="resetITR" class="reset-button">Reset Form</button>
                 </div>
 
                 <!-- Results Section -->
